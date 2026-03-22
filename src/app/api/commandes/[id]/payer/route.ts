@@ -31,18 +31,27 @@ export async function POST(
     const { data: urlData } = supabase.storage.from('comprovantes').getPublicUrl(filename)
     const publicUrl = urlData.publicUrl
 
+    // Vérifier si commande MedRio → passer automatiquement en livrée
+    const { data: orderData } = await supabase
+      .from('orders')
+      .select('is_medrio')
+      .eq('id', id)
+      .single()
+
+    const updatePayload: Record<string, unknown> = {
+      comprovante_url: publicUrl,
+      paiement_statut: 'payee',
+    }
+    if (orderData?.is_medrio) {
+      updatePayload.statut = 'livree'
+    }
+
     const { error: updateError } = await supabase
       .from('orders')
-      .update({ comprovante_url: publicUrl })
+      .update(updatePayload)
       .eq('id', id)
 
     if (updateError) throw new Error(updateError.message)
-
-    // Tenter de mettre à jour paiement_statut (colonne optionnelle selon migration)
-    await supabase
-      .from('orders')
-      .update({ paiement_statut: 'payee' })
-      .eq('id', id)
 
     return NextResponse.json({ ok: true })
   } catch (err) {

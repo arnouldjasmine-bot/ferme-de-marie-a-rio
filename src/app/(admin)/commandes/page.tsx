@@ -19,6 +19,7 @@ type Commande = {
   paiement_statut: 'en_attente' | 'payee'
   livree_at: string | null
   mode_livraison: string
+  is_medrio: boolean
   created_at: string
 }
 
@@ -34,8 +35,12 @@ const STATUT_COLORS: Record<Commande['statut'], string> = {
   livree: '#93A27D',
 }
 
+function estPayee(c: Commande): boolean {
+  return c.paiement_statut === 'payee' || c.comprovante_url !== null
+}
+
 function estEnRetard(c: Commande): boolean {
-  if (c.statut !== 'livree' || c.paiement_statut !== 'en_attente') return false
+  if (c.statut !== 'livree' || estPayee(c)) return false
   const dateRef = c.livree_at
     ? new Date(c.livree_at)
     : new Date(new Date(c.created_at).getTime() + 5 * 24 * 60 * 60 * 1000)
@@ -51,10 +56,10 @@ export default async function PageCommandes() {
     .from('orders')
     .select('*')
     .order('created_at', { ascending: false })
-  const raw: Commande[] = data ?? []
+  const raw: Commande[] = (data ?? []).filter(c => !c.is_medrio)
 
-  const actives = raw.filter(c => !(c.statut === 'livree' && c.paiement_statut === 'payee'))
-  const archivees = raw.filter(c => c.statut === 'livree' && c.paiement_statut === 'payee')
+  const actives = raw.filter(c => !(c.statut === 'livree' && estPayee(c)))
+  const archivees = raw.filter(c => c.statut === 'livree' && estPayee(c))
   const nbRetard = actives.filter(estEnRetard).length
 
   return (
@@ -140,11 +145,11 @@ function CarteCommande({ c, retard, archivee }: { c: Commande; retard: boolean; 
             <span
               className="text-xs px-2 py-0.5 rounded-full shrink-0"
               style={{
-                backgroundColor: c.paiement_statut === 'payee' ? '#eef3ee' : '#fdf0ec',
-                color: c.paiement_statut === 'payee' ? '#4A5D4E' : '#D27D56',
+                backgroundColor: estPayee(c) ? '#eef3ee' : '#fdf0ec',
+                color: estPayee(c) ? '#4A5D4E' : '#D27D56',
               }}
             >
-              {c.paiement_statut === 'payee' ? '✓ Payée' : '⏳ Paiement en attente'}
+              {estPayee(c) ? '✓ Payée' : '⏳ Paiement en attente'}
             </span>
             {retard && (
               <span className="text-xs px-2 py-0.5 rounded-full shrink-0 font-semibold text-white" style={{ backgroundColor: '#D27D56' }}>

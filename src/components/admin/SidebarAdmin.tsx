@@ -10,6 +10,7 @@ const liens = [
   { href: '/produits',           label: 'Produits',         icone: '🛒' },
   { href: '/commandes',          label: 'Commandes',        icone: '📦' },
   { href: '/commandes/relances', label: 'Relances',         icone: '⚠️' },
+  { href: '/medrio',             label: 'MedRio',           icone: '🏥' },
   { href: '/carte',              label: 'Carte livraisons', icone: '🗺️' },
   { href: '/statistiques',       label: 'Statistiques',     icone: '📈' },
 ]
