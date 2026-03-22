@@ -68,7 +68,7 @@ export default async function PageAccueil({ params }: Props) {
           <div className="rounded-2xl p-5 md:p-8 text-center relative overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
             <div className="w-full h-1 absolute top-0 left-0 right-0 rounded-t-2xl" style={{ backgroundColor: 'var(--vert-olive)' }} />
             <div className="flex items-center justify-center mb-5 mt-2">
-              <Image src="/icone-frais.png" alt="Produits frais" width={88} height={88} className="object-contain" />
+              <Image src="/icone-frais.png" alt="Produits frais" width={88} height={88} className="object-contain w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" />
             </div>
             <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>{t('valeurs.frais')}</h3>
             <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>{t('valeurs.fraisDesc')}</p>
@@ -78,7 +78,7 @@ export default async function PageAccueil({ params }: Props) {
           <div className="rounded-2xl p-5 md:p-8 text-center relative overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
             <div className="w-full h-1 absolute top-0 left-0 right-0 rounded-t-2xl" style={{ backgroundColor: 'var(--terracotta)' }} />
             <div className="flex items-center justify-center mb-5 mt-2">
-              <Image src="/icone-circuit.png" alt="Circuit court" width={88} height={88} className="object-contain" />
+              <Image src="/icone-circuit.png" alt="Circuit court" width={88} height={88} className="object-contain w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" />
             </div>
             <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>{t('valeurs.local')}</h3>
             <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>{t('valeurs.localDesc')}</p>
@@ -88,7 +88,7 @@ export default async function PageAccueil({ params }: Props) {
           <div className="rounded-2xl p-5 md:p-8 text-center relative overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
             <div className="w-full h-1 absolute top-0 left-0 right-0 rounded-t-2xl" style={{ backgroundColor: 'var(--vieux-rose)' }} />
             <div className="flex items-center justify-center mb-5 mt-2">
-              <Image src="/icone-naturel.png" alt="100% naturel" width={88} height={88} className="object-contain" />
+              <Image src="/icone-naturel.png" alt="100% naturel" width={88} height={88} className="object-contain w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" />
             </div>
             <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>{t('valeurs.naturel')}</h3>
             <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>{t('valeurs.naturelDesc')}</p>
