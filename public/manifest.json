@@ -1,0 +1,44 @@
+{
+  "name": "Ferme de Marie à Rio",
+  "short_name": "Ferme de Marie",
+  "description": "Produits fermiers frais, livrés chez vous au sud de Rio de Janeiro",
+  "start_url": "/fr",
+  "display": "standalone",
+  "background_color": "#F5F2E9",
+  "theme_color": "#4A5D4E",
+  "orientation": "portrait",
+  "lang": "fr",
+  "categories": ["food", "shopping"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Nos produits",
+      "url": "/fr/produits",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mon panier",
+      "url": "/fr/panier",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

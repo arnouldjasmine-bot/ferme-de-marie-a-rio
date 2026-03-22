@@ -1,0 +1,71 @@
+{
+  "nav": {
+    "accueil": "Accueil",
+    "produits": "Nos produits",
+    "panier": "Panier",
+    "commande": "Commander"
+  },
+  "accueil": {
+    "sousTitre": "Produits fermiers frais, livrés chez vous",
+    "voirProduits": "Voir nos produits",
+    "valeurs": {
+      "titre": "Nos valeurs",
+      "frais": "Produits frais",
+      "fraisDesc": "Récoltés le matin, livrés dans la journée",
+      "local": "Circuit court",
+      "localDesc": "Directement de la ferme à votre table",
+      "naturel": "100% naturel",
+      "naturelDesc": "Sans pesticides, élevage traditionnel"
+    }
+  },
+  "produits": {
+    "titre": "Nos produits",
+    "rupture": "Épuisé",
+    "ajouter": "Ajouter au panier",
+    "unite": "Unité",
+    "disponible": "Disponible",
+    "filtres": "Filtres"
+  },
+  "panier": {
+    "titre": "Mon panier",
+    "vide": "Votre panier est vide",
+    "sousTotal": "Sous-total",
+    "commander": "Passer la commande",
+    "continuer": "Continuer mes achats",
+    "supprimer": "Supprimer",
+    "quantite": "Quantité"
+  },
+  "commande": {
+    "titre": "Finaliser la commande",
+    "coordonnees": "Vos coordonnées",
+    "prenom": "Prénom",
+    "nom": "Nom",
+    "email": "Email",
+    "telephone": "Téléphone",
+    "adresse": "Adresse de livraison",
+    "payer": "Payer par PIX",
+    "total": "Total",
+    "pix": {
+      "titre": "Paiement PIX",
+      "instruction": "Scannez le QR code ou copiez la clé PIX dans votre application bancaire.",
+      "montant": "Montant à payer",
+      "cle": "Clé PIX",
+      "copier": "Copier",
+      "copie": "Copié !",
+      "beneficiaire": "Bénéficiaire",
+      "confirmer": "J'ai effectué le virement PIX",
+      "attente": "Vérification en cours...",
+      "info": "Votre commande sera préparée dès réception du paiement."
+    },
+    "confirmation": {
+      "titre": "Commande confirmée !",
+      "message": "Merci pour votre paiement PIX. Votre commande est en cours de préparation.",
+      "retour": "Retour à l'accueil"
+    }
+  },
+  "erreurs": {
+    "stockInsuffisant": "Stock insuffisant",
+    "erreurPaiement": "Erreur lors du paiement. Veuillez réessayer.",
+    "champsRequis": "Tous les champs sont requis"
+  }
+}

@@ -36,6 +36,13 @@ yarn-error.log*
 # vercel
 .vercel
 
+# données runtime (commandes + uploads)
+/data/
+/public/comprovantes/
+
+# mémoire Claude (locale)
+/.claude/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

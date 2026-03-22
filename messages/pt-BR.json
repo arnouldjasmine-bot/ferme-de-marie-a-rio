@@ -1,0 +1,71 @@
+{
+  "nav": {
+    "accueil": "Início",
+    "produits": "Nossos produtos",
+    "panier": "Carrinho",
+    "commande": "Pedir"
+  },
+  "accueil": {
+    "sousTitre": "Produtos frescos da fazenda, entregues na sua porta",
+    "voirProduits": "Ver nossos produtos",
+    "valeurs": {
+      "titre": "Nossos valores",
+      "frais": "Produtos frescos",
+      "fraisDesc": "Colhidos de manhã, entregues no dia",
+      "local": "Circuito curto",
+      "localDesc": "Direto da fazenda para a sua mesa",
+      "naturel": "100% natural",
+      "naturelDesc": "Sem agrotóxicos, criação tradicional"
+    }
+  },
+  "produits": {
+    "titre": "Nossos produtos",
+    "rupture": "Esgotado",
+    "ajouter": "Adicionar ao carrinho",
+    "unite": "Unidade",
+    "disponible": "Disponível",
+    "filtres": "Filtros"
+  },
+  "panier": {
+    "titre": "Meu carrinho",
+    "vide": "Seu carrinho está vazio",
+    "sousTotal": "Subtotal",
+    "commander": "Finalizar pedido",
+    "continuer": "Continuar comprando",
+    "supprimer": "Remover",
+    "quantite": "Quantidade"
+  },
+  "commande": {
+    "titre": "Finalizar pedido",
+    "coordonnees": "Seus dados",
+    "prenom": "Nome",
+    "nom": "Sobrenome",
+    "email": "E-mail",
+    "telephone": "Telefone",
+    "adresse": "Endereço de entrega",
+    "payer": "Pagar com PIX",
+    "total": "Total",
+    "pix": {
+      "titre": "Pagamento PIX",
+      "instruction": "Escaneie o QR Code ou copie a chave PIX no seu aplicativo bancário.",
+      "montant": "Valor a pagar",
+      "cle": "Chave PIX",
+      "copier": "Copiar",
+      "copie": "Copiado!",
+      "beneficiaire": "Beneficiário",
+      "confirmer": "Já realizei o pagamento PIX",
+      "attente": "Verificando...",
+      "info": "Seu pedido será preparado assim que recebermos o pagamento."
+    },
+    "confirmation": {
+      "titre": "Pedido confirmado!",
+      "message": "Obrigado pelo seu pagamento PIX. Seu pedido está sendo preparado.",
+      "retour": "Voltar ao início"
+    }
+  },
+  "erreurs": {
+    "stockInsuffisant": "Estoque insuficiente",
+    "erreurPaiement": "Erro ao processar pagamento. Por favor, tente novamente.",
+    "champsRequis": "Todos os campos são obrigatórios"
+  }
+}

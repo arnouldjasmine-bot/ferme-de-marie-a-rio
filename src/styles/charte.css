@@ -1,0 +1,62 @@
+/* =============================================
+   Charte graphique — La Ferme de Marie
+   Couleurs extraites de la charte officielle
+   ============================================= */
+
+:root {
+  /* Couleurs officielles */
+  --vert-sauge:      #4A5D4E;   /* couleur principale */
+  --terracotta:      #D27D56;   /* accent chaud */
+  --creme-lin:       #F5F2E9;   /* fond principal */
+  --vieux-rose:      #AD6A8C;   /* accent doux */
+  --vert-olive:      #93A27D;   /* vert clair secondaire */
+
+  /* Déclinaisons */
+  --vert-sauge-fonce:  #2e3d31;
+  --vert-sauge-clair:  #6b7f6e;
+  --terracotta-clair:  #e8a080;
+  --terracotta-fonce:  #a85c38;
+  --creme-fonce:       #ede9dc;
+
+  /* Aliases sémantiques (utilisés dans les composants) */
+  --couleur-primaire:        var(--vert-sauge);
+  --couleur-primaire-fonce:  var(--vert-sauge-fonce);
+  --couleur-primaire-clair:  var(--vert-olive);
+  --couleur-secondaire:      var(--terracotta);
+  --couleur-secondaire-clair:var(--terracotta-clair);
+  --couleur-accent:          var(--creme-lin);
+  --couleur-rose:            var(--vieux-rose);
+
+  /* Neutres */
+  --couleur-texte:       #2c2c2c;
+  --couleur-texte-doux:  #6b6b6b;
+  --couleur-fond:        var(--creme-lin);
+  --couleur-fond-carte:  #ffffff;
+  --couleur-bordure:     #ddd8cc;
+
+  /* Statuts */
+  --couleur-succes:    var(--vert-sauge);
+  --couleur-erreur:    #c0392b;
+  --couleur-attention: var(--terracotta);
+  --couleur-info:      #2980b9;
+
+  /* Admin */
+  --admin-fond:           #f8f6f0;
+  --admin-sidebar:        var(--vert-sauge-fonce);
+  --admin-sidebar-texte:  #ffffff;
+
+  /* Typographies (Google Fonts chargées dans layout) */
+  --police-titre:       'Playfair Display', Georgia, serif;
+  --police-script:      'Dancing Script', cursive;
+  --police-corps:       'DM Sans', 'Segoe UI', Arial, sans-serif;
+
+  /* Formes */
+  --rayon-bordure:       8px;
+  --rayon-bordure-grand: 16px;
+  --rayon-pill:          999px;
+
+  /* Ombres */
+  --ombre-carte:   0 2px 12px rgba(74, 93, 78, 0.08);
+  --ombre-modale:  0 8px 40px rgba(0, 0, 0, 0.14);
+  --ombre-nav:     0 2px 16px rgba(74, 93, 78, 0.10);
+}
