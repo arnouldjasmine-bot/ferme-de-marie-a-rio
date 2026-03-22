@@ -2,24 +2,28 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { CATEGORIES, type Produit, type Categorie } from '@/types'
+import { CATEGORIES, type Produit } from '@/types'
 
-const BADGE_COULEURS: Record<string, string> = {
-  fruits: '#e8f5e9',
-  legumes: '#f1f8e9',
-  confiture: '#fff3e0',
-  produits_laitiers: '#e3f2fd',
-}
+type CategorieDB = { id: string; value: string; label_fr: string; label_pt: string; emoji: string }
 
 export default function PageAdminProduits() {
   const [produits, setProduits] = useState<Produit[]>([])
+  const [categories, setCategories] = useState<CategorieDB[]>([])
   const [chargement, setChargement] = useState(true)
-  const [filtreCategorie, setFiltreCategorie] = useState<Categorie | 'toutes'>('toutes')
+  const [filtreCategorie, setFiltreCategorie] = useState<string>('toutes')
 
   async function charger() {
     setChargement(true)
-    const res = await fetch('/api/produits')
-    setProduits(await res.json())
+    const [resProduits, resCats] = await Promise.all([
+      fetch('/api/produits'),
+      fetch('/api/categories'),
+    ])
+    setProduits(await resProduits.json())
+    const cats = await resCats.json()
+    setCategories(Array.isArray(cats) && cats.length > 0
+      ? cats
+      : CATEGORIES.map((c, i) => ({ id: String(i), value: c.value, label_fr: c.labelFr, label_pt: c.labelPt, emoji: '' }))
+    )
     setChargement(false)
   }
 
@@ -53,17 +57,17 @@ export default function PageAdminProduits() {
 
       {/* Filtres */}
       <div className="flex gap-2 flex-wrap mb-5">
-        {(['toutes', ...CATEGORIES.map(c => c.value)] as const).map(val => (
+        {(['toutes', ...categories.map(c => c.value)]).map(val => (
           <button
             key={val}
-            onClick={() => setFiltreCategorie(val as Categorie | 'toutes')}
+            onClick={() => setFiltreCategorie(val)}
             className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
             style={{
               backgroundColor: filtreCategorie === val ? 'var(--couleur-primaire)' : 'var(--couleur-bordure)',
               color: filtreCategorie === val ? '#fff' : 'var(--couleur-texte)'
             }}
           >
-            {val === 'toutes' ? 'Toutes' : CATEGORIES.find(c => c.value === val)?.labelFr}
+            {val === 'toutes' ? 'Toutes' : `${categories.find(c => c.value === val)?.emoji ?? ''} ${categories.find(c => c.value === val)?.label_fr ?? val}`}
           </button>
         ))}
       </div>
@@ -93,11 +97,14 @@ export default function PageAdminProduits() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-semibold text-sm truncate" style={{ color: 'var(--couleur-texte)' }}>{p.nom}</p>
-                  {p.categorie && (
-                    <span className="text-xs px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: BADGE_COULEURS[p.categorie] ?? '#f0f0f0', color: 'var(--couleur-primaire-fonce)' }}>
-                      {CATEGORIES.find(c => c.value === p.categorie)?.labelFr}
-                    </span>
-                  )}
+                  {p.categorie && (() => {
+                    const cat = categories.find(c => c.value === p.categorie)
+                    return (
+                      <span className="text-xs px-2 py-0.5 rounded-full shrink-0" style={{ backgroundColor: '#f0f4f0', color: 'var(--couleur-primaire-fonce)' }}>
+                        {cat?.emoji} {cat?.label_fr ?? p.categorie}
+                      </span>
+                    )
+                  })()}
                 </div>
                 <div className="flex items-center gap-3 mt-1">
                   <span className="text-sm font-bold" style={{ color: 'var(--couleur-primaire-fonce)' }}>R$ {p.prix.toFixed(2)}</span>

@@ -194,7 +194,7 @@ function CarteCommandeMedRio({ c, archivee }: { c: Commande; archivee: boolean }
         {c.comprovante_url && <ComprovanteViewer url={c.comprovante_url} />}
         <div className="flex flex-wrap items-center gap-2">
           <BoutonsStatut id={c.id} statut={c.statut} />
-          <BoutonLienPaiement id={c.id} />
+          <BoutonLienPaiement id={c.id} telephone="02498166 8526" />
         </div>
       </div>
     </div>

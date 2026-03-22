@@ -98,7 +98,7 @@ export default async function PageDetailCommande({ params }: { params: Promise<{
       {/* Actions */}
       <div className="flex flex-col gap-3">
         {c.comprovante_url && <ComprovanteViewer url={c.comprovante_url} />}
-        <BoutonLienPaiement id={c.id} />
+        <BoutonLienPaiement id={c.id} telephone={c.telephone} />
       </div>
     </div>
   )

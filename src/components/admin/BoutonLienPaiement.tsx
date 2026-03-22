@@ -1,42 +1,79 @@
 'use client'
 
 import { useState } from 'react'
-import React from 'react'
 
-export default function BoutonLienPaiement({ id }: { id: string }) {
+function formatTelWhatsApp(tel: string): string {
+  const digits = tel.replace(/\D/g, '')
+  // Déjà avec indicatif pays
+  if (digits.startsWith('55') && digits.length >= 12) return digits
+  // Ajouter indicatif Brésil (+55)
+  return '55' + digits
+}
+
+export default function BoutonLienPaiement({ id, telephone }: { id: string; telephone?: string }) {
   const [copie, setCopie] = useState(false)
 
+  function getLien() {
+    return `${window.location.origin}/payer/${id}`
+  }
+
   function copierLien() {
-    const lien = `${window.location.origin}/payer/${id}`
-    navigator.clipboard.writeText(lien)
+    navigator.clipboard.writeText(getLien())
     setCopie(true)
     setTimeout(() => setCopie(false), 2000)
   }
 
-  const style: React.CSSProperties = {
+  function ouvrirWhatsApp() {
+    const lien = getLien()
+    const message = encodeURIComponent(
+      `Olá! 🌿 Segue o link para pagamento do seu pedido na Ferme de Marie:\n\n${lien}\n\nObrigada!`
+    )
+    const numero = telephone ? formatTelWhatsApp(telephone) : ''
+    const url = numero
+      ? `https://wa.me/${numero}?text=${message}`
+      : `https://wa.me/?text=${message}`
+    window.open(url, '_blank')
+  }
+
+  const styleBase: React.CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '0.375rem',
     padding: '0.375rem 0.75rem',
     borderRadius: '0.5rem',
-    border: '1.5px solid var(--vert-sauge)',
-    backgroundColor: 'transparent',
-    color: 'var(--vert-sauge-fonce)',
     fontSize: '0.75rem',
     fontWeight: 600,
     cursor: 'pointer',
-    transition: 'background-color 0.15s',
-  }
-
-  const styleActif: React.CSSProperties = {
-    ...style,
-    backgroundColor: '#eef3ee',
-    borderColor: 'var(--vert-sauge-fonce)',
+    transition: 'opacity 0.15s',
   }
 
   return (
-    <button onClick={copierLien} style={copie ? styleActif : style}>
-      {copie ? '✓ Lien copié !' : '🔗 Lien de paiement'}
-    </button>
+    <div className="flex flex-wrap gap-2">
+      {/* Copier le lien */}
+      <button
+        onClick={copierLien}
+        style={{
+          ...styleBase,
+          border: '1.5px solid var(--vert-sauge)',
+          backgroundColor: copie ? '#eef3ee' : 'transparent',
+          color: 'var(--vert-sauge-fonce)',
+        }}
+      >
+        {copie ? '✓ Copié !' : '🔗 Lien de paiement'}
+      </button>
+
+      {/* WhatsApp */}
+      <button
+        onClick={ouvrirWhatsApp}
+        style={{
+          ...styleBase,
+          border: '1.5px solid #25D366',
+          backgroundColor: 'transparent',
+          color: '#128C7E',
+        }}
+      >
+        📲 WhatsApp
+      </button>
+    </div>
   )
 }
