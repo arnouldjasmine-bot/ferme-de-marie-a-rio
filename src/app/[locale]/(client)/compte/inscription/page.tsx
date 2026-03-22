@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
+import AdresseAutocomplete from '@/components/client/AdresseAutocomplete'
 
 const PAYS = [
   { code: '+55', flag: '🇧🇷', label: 'BR' },
@@ -169,20 +170,12 @@ export default function PageInscription() {
             </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>
-              {pt ? 'Endereço de entrega' : 'Adresse de livraison'}
-            </label>
-            <input
-              type="text"
-              value={form.adresse}
-              onChange={set('adresse')}
-              autoComplete="street-address"
-              placeholder={pt ? 'Rua, número, bairro, cidade' : 'Rue, numéro, quartier, ville'}
-              className="w-full border rounded-xl px-3 py-2.5 text-sm outline-none"
-              style={{ borderColor: 'var(--couleur-bordure)' }}
-            />
-          </div>
+          <AdresseAutocomplete
+            value={form.adresse}
+            label={pt ? 'Endereço de entrega' : 'Adresse de livraison'}
+            locale={locale}
+            onChange={(adresse) => setForm(prev => ({ ...prev, adresse }))}
+          />
 
           <div>
             <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>
