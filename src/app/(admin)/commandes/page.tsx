@@ -1,7 +1,6 @@
 import ComprovanteViewer from '@/components/admin/ComprovanteViewer'
 import BoutonsStatut from '@/components/admin/BoutonsStatut'
 import BoutonLienPaiement from '@/components/admin/BoutonLienPaiement'
-import BoutonPaiementStatut from '@/components/admin/BoutonPaiementStatut'
 import { createServiceClient } from '@/lib/supabase/service'
 import Link from 'next/link'
 
@@ -187,8 +186,7 @@ function CarteCommande({ c, retard, archivee }: { c: Commande; retard: boolean; 
         {c.comprovante_url && <ComprovanteViewer url={c.comprovante_url} />}
         <div className="flex flex-wrap items-center gap-2">
           <BoutonsStatut id={c.id} statut={c.statut} />
-          <BoutonPaiementStatut id={c.id} paiement_statut={c.paiement_statut ?? 'en_attente'} />
-          <BoutonLienPaiement id={c.id} />
+<BoutonLienPaiement id={c.id} />
         </div>
       </div>
     </div>

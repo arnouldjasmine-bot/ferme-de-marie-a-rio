@@ -1,5 +1,4 @@
 import { createServiceClient } from '@/lib/supabase/service'
-import BoutonPaiementStatut from '@/components/admin/BoutonPaiementStatut'
 import Link from 'next/link'
 
 type Commande = {
@@ -137,7 +136,6 @@ function CarteRelance({ c, retard }: { c: Commande; retard: boolean }) {
         >
           📱 Relancer par WhatsApp
         </a>
-        <BoutonPaiementStatut id={c.id} paiement_statut={c.paiement_statut} />
       </div>
     </div>
   )

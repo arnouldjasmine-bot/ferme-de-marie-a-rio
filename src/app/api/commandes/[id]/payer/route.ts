@@ -33,7 +33,7 @@ export async function POST(
 
     const { error: updateError } = await supabase
       .from('orders')
-      .update({ comprovante_url: publicUrl })
+      .update({ comprovante_url: publicUrl, paiement_statut: 'payee' })
       .eq('id', id)
 
     if (updateError) throw new Error(updateError.message)
