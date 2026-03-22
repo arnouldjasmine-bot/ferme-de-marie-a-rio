@@ -1,6 +1,7 @@
 import { readFile } from 'fs/promises'
 import path from 'path'
 import ComprovanteViewer from '@/components/admin/ComprovanteViewer'
+import BoutonsStatut from '@/components/admin/BoutonsStatut'
 
 type Article = { nom: string; quantite: number; prix: number }
 type Commande = {
@@ -100,6 +101,9 @@ export default async function PageAdminCommandes() {
                   </div>
                 ))}
               </div>
+
+              {/* Changer statut */}
+              <BoutonsStatut id={cmd.id} statut={cmd.statut} />
 
               {/* Comprovante */}
               {cmd.comprovanteUrl ? (

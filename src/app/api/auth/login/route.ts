@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// ⚠️ Route de dev uniquement — sera remplacée par Supabase Auth en production
-const DEV_EMAIL    = 'admin@ferme-marie.test'
-const DEV_PASSWORD = 'ferme2024!'
+const DEV_EMAIL    = process.env.ADMIN_EMAIL    ?? 'admin@ferme-marie.test'
+const DEV_PASSWORD = process.env.ADMIN_PASSWORD ?? 'ferme2024!'
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData()
@@ -15,7 +14,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set('dev-admin-session', 'authenticated', {
       httpOnly: true,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 8, // 8h
+      maxAge: 60 * 60 * 24 * 7, // 7 jours
       path: '/'
     })
     return response
