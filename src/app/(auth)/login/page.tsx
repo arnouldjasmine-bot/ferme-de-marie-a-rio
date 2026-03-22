@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-export default function PageLogin() {
+function LoginForm() {
   const searchParams = useSearchParams()
   const [chargement, setChargement] = useState(false)
   const [erreur, setErreur] = useState(searchParams.get('erreur') ? 'Email ou mot de passe incorrect.' : '')
@@ -105,5 +105,13 @@ export default function PageLogin() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function PageLogin() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   )
 }
