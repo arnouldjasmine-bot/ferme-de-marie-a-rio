@@ -100,7 +100,7 @@ export default function BoutonNotifications({ locale }: Props) {
 
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: vapidKey,
+        applicationServerKey: base64UrlToUint8Array(vapidKey).buffer as ArrayBuffer,
       })
 
       const json = sub.toJSON()
@@ -174,3 +174,28 @@ export default function BoutonNotifications({ locale }: Props) {
   )
 }
 
+
+// Conversion base64url → Uint8Array sans atob (évite les problèmes d'encodage)
+function base64UrlToUint8Array(base64UrlString: string): Uint8Array {
+  const str = base64UrlString.trim().replace(/-/g, '+').replace(/_/g, '/')
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+  const lookup = new Uint8Array(256)
+  for (let i = 0; i < chars.length; i++) lookup[chars.charCodeAt(i)] = i
+
+  const len = str.replace(/=/g, '').length
+  const bufLen = Math.floor((len * 3) / 4)
+  const buf = new Uint8Array(bufLen)
+
+  let i = 0, p = 0
+  const slen = str.length
+  while (i < slen) {
+    const a = lookup[str.charCodeAt(i++)] ?? 0
+    const b = lookup[str.charCodeAt(i++)] ?? 0
+    const c = i < slen ? (lookup[str.charCodeAt(i++)] ?? 0) : 0
+    const d = i < slen ? (lookup[str.charCodeAt(i++)] ?? 0) : 0
+    if (p < bufLen) buf[p++] = (a << 2) | (b >> 4)
+    if (p < bufLen) buf[p++] = ((b & 15) << 4) | (c >> 2)
+    if (p < bufLen) buf[p++] = ((c & 3) << 6) | d
+  }
+  return buf
+}
