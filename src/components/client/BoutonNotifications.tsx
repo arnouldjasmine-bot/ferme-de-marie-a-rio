@@ -177,7 +177,7 @@ export default function BoutonNotifications({ locale }: Props) {
 
 // Conversion base64url → Uint8Array sans atob (évite les problèmes d'encodage)
 function base64UrlToUint8Array(base64UrlString: string): Uint8Array {
-  const str = base64UrlString.trim().replace(/-/g, '+').replace(/_/g, '/')
+  const str = base64UrlString.trim().replace(/[^A-Za-z0-9-_]/g, '').replace(/-/g, '+').replace(/_/g, '/')
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
   const lookup = new Uint8Array(256)
   for (let i = 0; i < chars.length; i++) lookup[chars.charCodeAt(i)] = i
