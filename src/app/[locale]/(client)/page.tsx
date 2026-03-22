@@ -54,7 +54,7 @@ export default async function PageAccueil({ params }: Props) {
 
       {/* ── Valeurs ── */}
       <section className="px-4 py-10 md:py-20 max-w-5xl mx-auto">
-        <div className="text-center mb-14">
+        <div className="text-center mb-8 md:mb-14">
           <p className="text-sm uppercase tracking-widest mb-2 font-semibold" style={{ color: 'var(--terracotta)' }}>
             {locale === 'pt-BR' ? 'Por que escolher' : 'Pourquoi nous choisir'}
           </p>
@@ -63,35 +63,35 @@ export default async function PageAccueil({ params }: Props) {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
           {/* Produits frais */}
-          <div className="rounded-2xl p-5 md:p-8 text-center relative overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
+          <div className="rounded-2xl relative overflow-hidden flex flex-row md:flex-col items-center gap-4 md:gap-0 p-4 md:p-8 md:text-center" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
             <div className="w-full h-1 absolute top-0 left-0 right-0 rounded-t-2xl" style={{ backgroundColor: 'var(--vert-olive)' }} />
-            <div className="flex items-center justify-center mb-5 mt-2">
-              <Image src="/icone-frais.png" alt="Produits frais" width={88} height={88} className="object-contain w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" />
+            <Image src="/icone-frais.png" alt="Produits frais" width={88} height={88} className="object-contain shrink-0 w-14 h-14 md:w-20 md:h-20 md:mb-4 md:mt-2" />
+            <div>
+              <h3 className="font-bold text-base md:text-lg md:mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>{t('valeurs.frais')}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>{t('valeurs.fraisDesc')}</p>
             </div>
-            <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>{t('valeurs.frais')}</h3>
-            <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>{t('valeurs.fraisDesc')}</p>
           </div>
 
           {/* Circuit court */}
-          <div className="rounded-2xl p-5 md:p-8 text-center relative overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
+          <div className="rounded-2xl relative overflow-hidden flex flex-row md:flex-col items-center gap-4 md:gap-0 p-4 md:p-8 md:text-center" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
             <div className="w-full h-1 absolute top-0 left-0 right-0 rounded-t-2xl" style={{ backgroundColor: 'var(--terracotta)' }} />
-            <div className="flex items-center justify-center mb-5 mt-2">
-              <Image src="/icone-circuit.png" alt="Circuit court" width={88} height={88} className="object-contain w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" />
+            <Image src="/icone-circuit.png" alt="Circuit court" width={88} height={88} className="object-contain shrink-0 w-14 h-14 md:w-20 md:h-20 md:mb-4 md:mt-2" />
+            <div>
+              <h3 className="font-bold text-base md:text-lg md:mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>{t('valeurs.local')}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>{t('valeurs.localDesc')}</p>
             </div>
-            <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>{t('valeurs.local')}</h3>
-            <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>{t('valeurs.localDesc')}</p>
           </div>
 
           {/* 100% naturel */}
-          <div className="rounded-2xl p-5 md:p-8 text-center relative overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
+          <div className="rounded-2xl relative overflow-hidden flex flex-row md:flex-col items-center gap-4 md:gap-0 p-4 md:p-8 md:text-center" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
             <div className="w-full h-1 absolute top-0 left-0 right-0 rounded-t-2xl" style={{ backgroundColor: 'var(--vieux-rose)' }} />
-            <div className="flex items-center justify-center mb-5 mt-2">
-              <Image src="/icone-naturel.png" alt="100% naturel" width={88} height={88} className="object-contain w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" />
+            <Image src="/icone-naturel.png" alt="100% naturel" width={88} height={88} className="object-contain shrink-0 w-14 h-14 md:w-20 md:h-20 md:mb-4 md:mt-2" />
+            <div>
+              <h3 className="font-bold text-base md:text-lg md:mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>{t('valeurs.naturel')}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>{t('valeurs.naturelDesc')}</p>
             </div>
-            <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>{t('valeurs.naturel')}</h3>
-            <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>{t('valeurs.naturelDesc')}</p>
           </div>
         </div>
       </section>
