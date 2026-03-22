@@ -49,7 +49,12 @@ export default function FormulaireProduit({ produit }: Props) {
         fd.append('image', imageFile)
         const res = await fetch('/api/produits/image', { method: 'POST', body: fd })
         const data = await res.json()
-        if (data.url) imageUrl = data.url
+        if (!res.ok || !data.url) {
+          setErreur(`Erreur upload photo : ${data.error ?? 'Vérifiez que le bucket "produits" existe dans Supabase Storage.'}`)
+          setChargement(false)
+          return
+        }
+        imageUrl = data.url
       }
 
       const body = {
