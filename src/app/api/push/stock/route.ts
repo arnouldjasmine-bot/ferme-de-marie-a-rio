@@ -3,11 +3,28 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { sendPush, type PushSubscriptionRecord } from '@/lib/push'
 import { cookies } from 'next/headers'
 
-export async function POST(request: NextRequest) {
-  // Vérification session admin
+async function isAdmin(): Promise<boolean> {
   const cookieStore = await cookies()
-  const devSession = cookieStore.get('dev-admin-session')?.value
-  if (devSession !== 'authenticated') {
+  // Dev cookie
+  if (cookieStore.get('dev-admin-session')?.value === 'authenticated') return true
+
+  // Supabase Auth session (production)
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!supabaseUrl) return false
+  const hostname = new URL(supabaseUrl).hostname.split('.')[0]
+  const accessToken =
+    cookieStore.get('sb-access-token')?.value ||
+    cookieStore.get(`sb-${hostname}-auth-token`)?.value
+
+  if (!accessToken) return false
+  const supabase = createServiceClient()
+  const { data: { user } } = await supabase.auth.getUser(accessToken)
+  return !!user
+}
+
+export async function POST(request: NextRequest) {
+  void request
+  if (!await isAdmin()) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
