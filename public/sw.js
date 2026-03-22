@@ -8,6 +8,11 @@ self.addEventListener('activate', function(event) {
   event.waitUntil(clients.claim())
 })
 
+// Laisser passer toutes les requêtes réseau normalement
+self.addEventListener('fetch', function(event) {
+  event.respondWith(fetch(event.request))
+})
+
 self.addEventListener('push', function(event) {
   if (!event.data) return
   var payload
