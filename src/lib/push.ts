@@ -36,8 +36,8 @@ export async function sendPush(
   sub: PushSubscriptionRecord,
   payload: PushPayload,
 ): Promise<'ok' | 'expired'> {
-  if (!initVapid()) return 'expired'
   try {
+    if (!initVapid()) return 'expired'
     await webpush.sendNotification(
       {
         endpoint: sub.endpoint,
@@ -53,6 +53,6 @@ export async function sendPush(
     const status = (err as { statusCode?: number }).statusCode
     if (status === 410 || status === 404) return 'expired'
     console.error('Push send error:', err)
-    return 'expired'
+    throw err
   }
 }

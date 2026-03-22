@@ -34,13 +34,14 @@ export default function PageAdminProduits() {
     setPushEnvoi('...')
     try {
       const res = await fetch('/api/push/stock', { method: 'POST' })
-      const json = await res.json() as { sent?: number; error?: string }
+      const json = await res.json() as { sent?: number; total?: number; error?: string; errors?: string[] }
       if (json.error) throw new Error(json.error)
-      setPushEnvoi(`✓ ${json.sent ?? 0} clients prévenus`)
-    } catch {
-      setPushEnvoi('Erreur envoi')
+      const detail = json.errors?.length ? ` (${json.errors[0]})` : ''
+      setPushEnvoi(`✓ ${json.sent ?? 0}/${json.total ?? 0} envoyés${detail}`)
+    } catch (e) {
+      setPushEnvoi(`Erreur: ${e instanceof Error ? e.message : 'inconnue'}`)
     }
-    setTimeout(() => setPushEnvoi(null), 4000)
+    setTimeout(() => setPushEnvoi(null), 8000)
   }
 
   async function toggleActif(e: React.MouseEvent, p: Produit) {

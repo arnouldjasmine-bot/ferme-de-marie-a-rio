@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
     if (error) throw error
 
     let sent = 0
+    const errors: string[] = []
     await Promise.allSettled(
       (subs ?? []).map(async (sub: PushSubscriptionRecord & { locale?: string }) => {
         const pt = sub.locale === 'pt-BR'
@@ -49,15 +50,23 @@ export async function POST(request: NextRequest) {
           icon: '/logo-submark.png',
         }
         try {
-          await sendPush(sub, payload)
-          sent++
+          const result = await sendPush(sub, payload)
+          if (result === 'ok') sent++
+          else {
+            errors.push(`expired: ${sub.endpoint.slice(0, 40)}`)
+            // Supprimer l'abonnement expiré de la base
+            await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)
+          }
         } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e)
+          errors.push(`error: ${msg}`)
           console.error('Erreur push stock:', e)
         }
       })
     )
 
-    return NextResponse.json({ ok: true, sent })
+    console.log(`Push stock: sent=${sent}, errors=${JSON.stringify(errors)}`)
+    return NextResponse.json({ ok: true, sent, total: subs?.length ?? 0, errors })
   } catch (err) {
     console.error('Erreur stock push:', err)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })

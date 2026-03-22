@@ -140,7 +140,16 @@ export default function BoutonNotifications({ locale }: Props) {
     try {
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.getSubscription()
-      if (sub) await sub.unsubscribe()
+      if (sub) {
+        const endpoint = sub.endpoint
+        await sub.unsubscribe()
+        // Supprimer aussi de la base
+        await fetch('/api/push/unsubscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint }),
+        })
+      }
       setActif(false)
     } catch (err) {
       console.error('Erreur désabonnement push:', err)
