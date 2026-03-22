@@ -1,4 +1,33 @@
+'use client'
+
+import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+
 export default function PageLogin() {
+  const searchParams = useSearchParams()
+  const [chargement, setChargement] = useState(false)
+  const [erreur, setErreur] = useState(searchParams.get('erreur') ? 'Email ou mot de passe incorrect.' : '')
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setChargement(true)
+    setErreur('')
+
+    const fd = new FormData(e.currentTarget)
+    try {
+      const res = await fetch('/api/auth/login', { method: 'POST', body: fd })
+      const data = await res.json()
+      if (data.ok) {
+        window.location.href = '/dashboard'
+      } else {
+        setErreur('Email ou mot de passe incorrect.')
+      }
+    } catch {
+      setErreur('Erreur de connexion. Réessayez.')
+    }
+    setChargement(false)
+  }
+
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4"
@@ -29,7 +58,7 @@ export default function PageLogin() {
           Espace administrateur
         </p>
 
-        <form action="/api/auth/login" method="POST" className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <label htmlFor="email" className="text-sm font-medium" style={{ color: 'var(--couleur-texte)' }}>
               Email
@@ -58,12 +87,18 @@ export default function PageLogin() {
               style={{ borderColor: 'var(--couleur-bordure)', borderRadius: 'var(--rayon-bordure)' }}
             />
           </div>
+
+          {erreur && (
+            <p className="text-sm text-center" style={{ color: 'var(--couleur-erreur)' }}>{erreur}</p>
+          )}
+
           <button
             type="submit"
-            className="mt-2 py-2 rounded-lg text-white font-semibold transition-opacity hover:opacity-90"
+            disabled={chargement}
+            className="mt-2 py-2 rounded-lg text-white font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
             style={{ backgroundColor: 'var(--couleur-primaire)', borderRadius: 'var(--rayon-bordure)' }}
           >
-            Se connecter
+            {chargement ? 'Connexion…' : 'Se connecter'}
           </button>
         </form>
       </div>

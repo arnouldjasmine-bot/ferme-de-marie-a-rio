@@ -3,13 +3,11 @@ import { NextRequest, NextResponse } from 'next/server'
 type AdminCredential = { email: string; password: string }
 
 function getAdmins(): AdminCredential[] {
-  // Variable unique JSON : [{"email":"...","password":"..."},...]
   if (process.env.ADMIN_CREDENTIALS) {
     try {
       return JSON.parse(process.env.ADMIN_CREDENTIALS)
     } catch { /* fallback */ }
   }
-  // Fallback : variable simple (rétrocompatibilité)
   const email    = process.env.ADMIN_EMAIL    ?? 'admin@ferme-marie.test'
   const password = process.env.ADMIN_PASSWORD ?? 'ferme2024!'
   return [{ email, password }]
@@ -24,18 +22,16 @@ export async function POST(request: NextRequest) {
   const valide = admins.some(a => a.email === email && a.password === password)
 
   if (valide) {
-    const response = NextResponse.redirect(new URL('/dashboard', request.url))
+    const response = NextResponse.json({ ok: true })
     response.cookies.set('dev-admin-session', 'authenticated', {
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 7, // 7 jours
+      maxAge: 60 * 60 * 24 * 7,
       path: '/'
     })
     return response
   }
 
-  const url = new URL('/login', request.url)
-  url.searchParams.set('erreur', '1')
-  return NextResponse.redirect(url)
+  return NextResponse.json({ ok: false }, { status: 401 })
 }
