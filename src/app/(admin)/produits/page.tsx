@@ -11,6 +11,7 @@ export default function PageAdminProduits() {
   const [categories, setCategories] = useState<CategorieDB[]>([])
   const [chargement, setChargement] = useState(true)
   const [filtreCategorie, setFiltreCategorie] = useState<string>('toutes')
+  const [pushEnvoi, setPushEnvoi]   = useState<string | null>(null)
 
   async function charger() {
     setChargement(true)
@@ -29,6 +30,19 @@ export default function PageAdminProduits() {
 
   useEffect(() => { charger() }, [])
 
+  async function envoyerPushStock() {
+    setPushEnvoi('...')
+    try {
+      const res = await fetch('/api/push/stock', { method: 'POST' })
+      const json = await res.json() as { sent?: number; error?: string }
+      if (json.error) throw new Error(json.error)
+      setPushEnvoi(`✓ ${json.sent ?? 0} clients prévenus`)
+    } catch {
+      setPushEnvoi('Erreur envoi')
+    }
+    setTimeout(() => setPushEnvoi(null), 4000)
+  }
+
   async function toggleActif(e: React.MouseEvent, p: Produit) {
     e.preventDefault()
     e.stopPropagation()
@@ -46,13 +60,23 @@ export default function PageAdminProduits() {
         <h1 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--couleur-primaire-fonce)', fontFamily: 'var(--police-titre)' }}>
           Produits ({produits.length})
         </h1>
-        <Link
-          href="/produits/nouveau"
-          className="px-3 py-2 rounded-lg text-white font-medium text-sm transition-opacity hover:opacity-90"
-          style={{ backgroundColor: 'var(--couleur-primaire)' }}
-        >
-          + Ajouter
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={envoyerPushStock}
+            className="px-3 py-2 rounded-lg font-medium text-sm transition-opacity hover:opacity-90 border"
+            style={{ color: 'var(--couleur-primaire)', borderColor: 'var(--couleur-primaire)' }}
+            title="Envoyer une notification push aux clients abonnés"
+          >
+            {pushEnvoi ?? '🔔 Prévenir les clients'}
+          </button>
+          <Link
+            href="/produits/nouveau"
+            className="px-3 py-2 rounded-lg text-white font-medium text-sm transition-opacity hover:opacity-90"
+            style={{ backgroundColor: 'var(--couleur-primaire)' }}
+          >
+            + Ajouter
+          </Link>
+        </div>
       </div>
 
       {/* Filtres */}

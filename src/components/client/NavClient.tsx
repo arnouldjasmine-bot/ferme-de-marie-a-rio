@@ -4,7 +4,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter, usePathname } from 'next/navigation'
+import { useState } from 'react'
 import { usePanier } from '@/lib/panier-context'
+import { useAuth } from './AuthProvider'
 
 export default function NavClient() {
   const t = useTranslations('nav')
@@ -12,11 +14,21 @@ export default function NavClient() {
   const router = useRouter()
   const pathname = usePathname()
   const { totalArticles } = usePanier()
+  const { user, profile, signOut } = useAuth()
+  const [menuOuvert, setMenuOuvert] = useState(false)
+  const pt = locale === 'pt-BR'
 
   function changerLocale(nouvelleLocale: string) {
     const segments = pathname.split('/')
     segments[1] = nouvelleLocale
     router.push(segments.join('/'))
+  }
+
+  async function handleSignOut() {
+    setMenuOuvert(false)
+    await signOut()
+    router.push(`/${locale}`)
+    router.refresh()
   }
 
   return (
@@ -54,8 +66,8 @@ export default function NavClient() {
           </Link>
         </nav>
 
-        {/* Droite : langue + panier */}
-        <div className="flex items-center gap-4">
+        {/* Droite : langue + compte + panier */}
+        <div className="flex items-center gap-3">
           {/* Sélecteur langue */}
           <div className="flex items-center gap-1 text-xs font-semibold tracking-widest uppercase">
             <button
@@ -82,6 +94,71 @@ export default function NavClient() {
               PT
             </button>
           </div>
+
+          {/* Compte utilisateur */}
+          {!user ? (
+            <Link
+              href={`/${locale}/compte/connexion`}
+              className="hidden sm:flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border transition-colors hover:opacity-80"
+              style={{ color: 'var(--vert-sauge-fonce)', borderColor: 'var(--couleur-bordure)' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+              </svg>
+              <span>{pt ? 'Entrar' : 'Se connecter'}</span>
+            </Link>
+          ) : (
+            <div className="relative">
+              <button
+                onClick={() => setMenuOuvert(v => !v)}
+                className="hidden sm:flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full border transition-colors hover:opacity-80"
+                style={{ color: 'var(--vert-sauge-fonce)', borderColor: 'var(--couleur-bordure)' }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+                <span>{profile?.prenom ?? (pt ? 'Conta' : 'Compte')}</span>
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                  <path d="M2 3l3 4 3-4"/>
+                </svg>
+              </button>
+
+              {menuOuvert && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setMenuOuvert(false)} />
+                  <div
+                    className="absolute right-0 mt-2 w-48 rounded-xl overflow-hidden z-20 py-1"
+                    style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-modale)', border: '1px solid var(--couleur-bordure)' }}
+                  >
+                    <Link
+                      href={`/${locale}/mes-commandes`}
+                      onClick={() => setMenuOuvert(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+                      style={{ color: 'var(--couleur-texte)' }}
+                    >
+                      📦 {pt ? 'Meus pedidos' : 'Mes commandes'}
+                    </Link>
+                    <Link
+                      href={`/${locale}/favoris`}
+                      onClick={() => setMenuOuvert(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors"
+                      style={{ color: 'var(--couleur-texte)' }}
+                    >
+                      ❤️ {pt ? 'Favoritos' : 'Favoris'}
+                    </Link>
+                    <div style={{ height: 1, backgroundColor: 'var(--couleur-bordure)', margin: '4px 0' }} />
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors text-left"
+                      style={{ color: 'var(--couleur-texte-doux)' }}
+                    >
+                      ↩ {pt ? 'Sair' : 'Se déconnecter'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Bouton panier */}
           <Link

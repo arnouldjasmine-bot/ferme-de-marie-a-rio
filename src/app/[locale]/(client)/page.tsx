@@ -5,6 +5,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import type { Produit } from '@/types'
 
 type Props = { params: Promise<{ locale: string }> }
+type PageContent = Record<string, { valeur_fr: string; valeur_pt: string }>
 
 function getSaisonRio(mois: number) {
   if (mois === 12 || mois <= 3) return { fr: 'Été',       pt: 'Verão',    emoji: '☀️', couleur: 'var(--terracotta)' }
@@ -20,15 +21,37 @@ export default async function PageAccueil({ params }: Props) {
   const t = await getTranslations('accueil')
 
   const supabase = createServiceClient()
-  const { data: produitsData } = await supabase
-    .from('products')
-    .select('id, nom, prix, unite, stock, image_url, categorie, actif')
-    .eq('actif', true)
-    .gt('stock', 0)
-    .order('created_at', { ascending: false })
-    .limit(6)
+  const [{ data: produitsData }, { data: pageData }] = await Promise.all([
+    supabase
+      .from('products')
+      .select('id, nom, prix, unite, stock, image_url, categorie, actif')
+      .eq('actif', true)
+      .gt('stock', 0)
+      .order('created_at', { ascending: false })
+      .limit(6),
+    supabase
+      .from('page_content')
+      .select('cle, valeur_fr, valeur_pt'),
+  ])
+
   const produitsSaison: Produit[] = (produitsData ?? []) as Produit[]
   const saison = getSaisonRio(new Date().getMonth() + 1)
+
+  const pc: PageContent = {}
+  for (const row of pageData ?? []) {
+    pc[row.cle] = { valeur_fr: row.valeur_fr, valeur_pt: row.valeur_pt }
+  }
+
+  const pt = locale === 'pt-BR'
+  const sousTitre = pc.hero_sous_titre
+    ? (pt ? pc.hero_sous_titre.valeur_pt : pc.hero_sous_titre.valeur_fr) || t('sousTitre')
+    : t('sousTitre')
+  const description = pc.description
+    ? (pt ? pc.description.valeur_pt : pc.description.valeur_fr)
+    : null
+  const annonce = pc.annonce
+    ? (pt ? pc.annonce.valeur_pt : pc.annonce.valeur_fr)
+    : null
 
   return (
     <div>
@@ -48,7 +71,7 @@ export default async function PageAccueil({ params }: Props) {
             className="mb-8 max-w-xs sm:max-w-md text-white/90"
             style={{ fontFamily: 'var(--font-dancing)', fontSize: 'clamp(1.2rem, 4vw, 1.6rem)' }}
           >
-            {t('sousTitre')}
+            {sousTitre}
           </p>
           <Link
             href={`/${locale}/produits`}
@@ -67,12 +90,21 @@ export default async function PageAccueil({ params }: Props) {
         </div>
       </section>
 
-      {/* ── Bandeau "une propriedade responsável" ── */}
+      {/* ── Bandeau annonce / "une propriété responsable" ── */}
       <section className="py-3 text-center" style={{ backgroundColor: 'var(--vert-olive)' }}>
         <p className="text-white italic" style={{ fontFamily: 'var(--font-dancing)', fontSize: '1.5rem' }}>
-          {locale === 'pt-BR' ? 'uma propriedade responsável' : 'une propriété responsable'}
+          {annonce || (locale === 'pt-BR' ? 'uma propriedade responsável' : 'une propriété responsable')}
         </p>
       </section>
+
+      {/* ── Description ferme ── */}
+      {description && (
+        <section className="py-6 px-4 text-center max-w-2xl mx-auto">
+          <p className="text-base leading-relaxed" style={{ color: 'var(--couleur-texte-doux)', fontFamily: 'var(--font-dm-sans)' }}>
+            {description}
+          </p>
+        </section>
+      )}
 
       {/* ── Valeurs ── */}
       <section className="px-4 py-10 md:py-20 max-w-5xl mx-auto">

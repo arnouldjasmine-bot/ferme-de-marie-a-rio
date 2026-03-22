@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createServiceClient } from '@/lib/supabase/service'
+import { sendPush, type PushSubscriptionRecord } from '@/lib/push'
 
 function emailConfirmationHtml(opts: {
   locale: string
@@ -145,6 +146,34 @@ export async function PATCH(
         })
       } catch (emailErr) {
         console.error('Erreur email confirmation:', emailErr)
+      }
+    }
+
+    // Push notification quand la commande passe à "confirmee" avec user_id
+    if (statut === 'confirmee' && ancienStatut !== 'confirmee' && commande.user_id) {
+      try {
+        const { data: subs } = await supabase
+          .from('push_subscriptions')
+          .select('endpoint, p256dh, auth_key, locale')
+          .eq('user_id', commande.user_id)
+
+        if (subs?.length) {
+          const locale = commande.locale ?? 'fr'
+          const pt = locale === 'pt-BR'
+          const payload = {
+            title: pt ? '✅ Pedido confirmado!' : '✅ Commande confirmée !',
+            body: pt
+              ? 'Seu pedido foi confirmado! Acesse o link de pagamento nos seus pedidos.'
+              : 'Votre commande est confirmée ! Retrouvez le lien de paiement dans vos commandes.',
+            url: pt ? '/pt-BR/mes-commandes' : '/fr/mes-commandes',
+            icon: '/logo-submark.png',
+          }
+          await Promise.allSettled(
+            subs.map((sub: PushSubscriptionRecord) => sendPush(sub, payload))
+          )
+        }
+      } catch (pushErr) {
+        console.error('Erreur push confirmation:', pushErr)
       }
     }
 

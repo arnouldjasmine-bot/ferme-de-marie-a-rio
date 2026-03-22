@@ -12,6 +12,8 @@ const liens = [
   { href: '/commandes',          label: 'Commandes',        icone: '📦' },
   { href: '/commandes/relances', label: 'Relances',         icone: '⚠️' },
   { href: '/clients',            label: 'Clients fidèles',  icone: '👥' },
+  { href: '/avis',               label: 'Avis',             icone: '⭐' },
+  { href: '/page-accueil',       label: "Page d'accueil",   icone: '🏠' },
   { href: '/medrio',             label: 'MedRio',           icone: '🏥' },
   { href: '/carte',              label: 'Carte livraisons', icone: '🗺️' },
   { href: '/statistiques',       label: 'Statistiques',     icone: '📈' },

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { usePanier } from '@/lib/panier-context'
+import { useAuth } from './AuthProvider'
 import AdresseAutocomplete from './AdresseAutocomplete'
 
 type Etape = 'formulaire' | 'confirmation'
@@ -24,6 +25,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
   const t    = useTranslations('commande')
   const tErr = useTranslations('erreurs')
   const { articles, totalPrix, viderPanier } = usePanier()
+  const { user, profile } = useAuth()
 
   // Indicatif pays par défaut selon la langue du site
   const paysDefaut = PAYS.find(p => p.locale === locale) ?? PAYS[0]
@@ -37,7 +39,34 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
   const [chargement, setChargement] = useState(false)
   const [erreur, setErreur]         = useState('')
   const [adresseValide, setAdresseValide] = useState(false)
-  const [form, setForm] = useState({ prenom: '', nom: '', email: '', telephone: '', adresse: '' })
+  const [form, setForm] = useState({
+    prenom: '',
+    nom: '',
+    email: '',
+    telephone: '',
+    adresse: '',
+  })
+
+  // Préremplir avec le profil utilisateur
+  useEffect(() => {
+    if (profile) {
+      setForm(prev => ({
+        ...prev,
+        prenom: profile.prenom || prev.prenom,
+        nom:    profile.nom    || prev.nom,
+        email:  user?.email    || prev.email,
+        telephone: profile.telephone
+          ? profile.telephone.replace(/^\+\d+/, '').trim()
+          : prev.telephone,
+        adresse: profile.adresse || prev.adresse,
+      }))
+      // Mettre à jour le pays selon la locale du profil
+      const p = PAYS.find(p => p.locale === profile.locale)
+      if (p) setPaysSelectionne(p)
+    } else if (user?.email) {
+      setForm(prev => ({ ...prev, email: user.email ?? prev.email }))
+    }
+  }, [profile, user])
 
   const totalFinal = totalPrix + (mode === 'livraison' ? FRAIS_LIVRAISON : 0)
 
@@ -96,6 +125,9 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
         prix: a.produit.prix,
       }))))
       data.append('locale', localeCommande)
+      if (user?.id) {
+        data.append('user_id', user.id)
+      }
       await fetch('/api/commandes', { method: 'POST', body: data })
     } catch (err) {
       console.error(err)

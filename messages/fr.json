@@ -63,6 +63,35 @@
       "retour": "Retour à l'accueil"
     }
   },
+  "compte": {
+    "connexion": "Se connecter",
+    "inscription": "Créer un compte",
+    "deconnexion": "Se déconnecter",
+    "mesCommandes": "Mes commandes",
+    "favoris": "Mes favoris",
+    "monCompte": "Mon compte"
+  },
+  "favoris": {
+    "titre": "Mes favoris",
+    "vide": "Aucun favori pour l'instant.",
+    "retirer": "Retirer des favoris",
+    "ajouter": "Ajouter aux favoris"
+  },
+  "notifications": {
+    "activer": "Activer les notifications",
+    "actives": "Notifications actives",
+    "desactiver": "Désactiver"
+  },
+  "avis": {
+    "titre": "Avis de nos clients",
+    "laisser": "Laisser un avis",
+    "note": "Note",
+    "commentaire": "Commentaire",
+    "envoyer": "Envoyer",
+    "annuler": "Annuler",
+    "succes": "Avis envoyé ! Il sera publié après modération.",
+    "vide": "Aucun avis pour le moment."
+  },
   "erreurs": {
     "stockInsuffisant": "Stock insuffisant",
     "erreurPaiement": "Erreur lors du paiement. Veuillez réessayer.",

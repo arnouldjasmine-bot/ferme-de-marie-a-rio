@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
     const locale         = formData.get('locale')?.toString() ?? 'fr'
     const mode_livraison = formData.get('mode_livraison')?.toString() ?? 'livraison'
     const frais_livraison = parseFloat(formData.get('frais_livraison')?.toString() ?? '0')
+    const user_id = formData.get('user_id')?.toString() || null
 
     const supabase = createServiceClient()
 
@@ -112,6 +113,7 @@ export async function POST(request: NextRequest) {
         prenom, nom, email, telephone, adresse,
         total, articles, comprovante_url: null,
         statut: 'en_attente', locale, mode_livraison, frais_livraison,
+        user_id: user_id ?? null,
       })
       .select()
       .single()
@@ -144,7 +146,7 @@ export async function POST(request: NextRequest) {
           : `✅ Commande reçue — La Ferme de Marie à Rio`
 
         await resend.emails.send({
-          from: 'La Ferme de Marie à Rio <onboarding@resend.dev>',
+          from: 'La Ferme de Marie à Rio <contato@lafermedemarieario.com.br>',
           replyTo: 'arnould.jasmine@gmail.com',
           to: email,
           subject,

@@ -63,6 +63,35 @@
       "retour": "Voltar ao início"
     }
   },
+  "compte": {
+    "connexion": "Entrar",
+    "inscription": "Criar conta",
+    "deconnexion": "Sair",
+    "mesCommandes": "Meus pedidos",
+    "favoris": "Meus favoritos",
+    "monCompte": "Minha conta"
+  },
+  "favoris": {
+    "titre": "Meus favoritos",
+    "vide": "Nenhum favorito ainda.",
+    "retirer": "Remover dos favoritos",
+    "ajouter": "Adicionar aos favoritos"
+  },
+  "notifications": {
+    "activer": "Ativar notificações",
+    "actives": "Notificações ativas",
+    "desactiver": "Desativar"
+  },
+  "avis": {
+    "titre": "Avaliações dos clientes",
+    "laisser": "Deixar avaliação",
+    "note": "Nota",
+    "commentaire": "Comentário",
+    "envoyer": "Enviar",
+    "annuler": "Cancelar",
+    "succes": "Avaliação enviada! Será publicada após moderação.",
+    "vide": "Nenhuma avaliação ainda."
+  },
   "erreurs": {
     "stockInsuffisant": "Estoque insuficiente",
     "erreurPaiement": "Erro ao processar pagamento. Por favor, tente novamente.",
