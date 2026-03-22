@@ -117,7 +117,8 @@ export default function BoutonNotifications({ locale }: Props) {
       setActif(true)
     } catch (err) {
       console.error('Erreur abonnement push:', err)
-      setErreur(pt ? 'Erro ao ativar notificações.' : 'Erreur lors de l\'activation des notifications.')
+      const msg = err instanceof Error ? err.message : String(err)
+      setErreur(`Erreur: ${msg}`)
     }
     setLoading(false)
   }
