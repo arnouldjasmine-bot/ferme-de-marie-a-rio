@@ -11,7 +11,8 @@ const ADMIN_ROUTES = [
   '/produits',
   '/commandes',
   '/carte',
-  '/statistiques'
+  '/statistiques',
+  '/medrio',
 ]
 
 function isAdminPath(pathname: string): boolean {
