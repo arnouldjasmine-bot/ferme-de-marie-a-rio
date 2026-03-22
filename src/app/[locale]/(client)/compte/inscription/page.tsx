@@ -17,12 +17,11 @@ export default function PageInscription() {
   const locale = (params?.locale as string) ?? 'fr'
   const router = useRouter()
 
-  // La langue est celle du site (URL), pas le pays du téléphone
   const pt = locale === 'pt-BR'
   const paysDefaut = locale === 'pt-BR' ? PAYS[0] : PAYS[1]
   const [paysSelectionne, setPaysSelectionne] = useState<Pays>(paysDefaut)
 
-  const [form, setForm] = useState({ prenom: '', nom: '', email: '', telephone: '', password: '' })
+  const [form, setForm] = useState({ prenom: '', nom: '', email: '', telephone: '', adresse: '', password: '' })
   const [erreur, setErreur]   = useState('')
   const [loading, setLoading] = useState(false)
   const [succes, setSucces]   = useState(false)
@@ -45,6 +44,7 @@ export default function PageInscription() {
     fd.append('nom', form.nom.trim())
     fd.append('email', form.email.trim())
     fd.append('telephone', telephoneComplet)
+    fd.append('adresse', form.adresse.trim())
     fd.append('password', form.password)
     fd.append('locale', locale)
 
@@ -165,8 +165,23 @@ export default function PageInscription() {
               />
             </div>
             <p className="text-xs mt-1" style={{ color: 'var(--couleur-texte-doux)' }}>
-              {pt ? 'Selecione o código do seu país' : 'Sélectionnez l\'indicatif de votre pays'}
+              {pt ? 'Selecione o código do seu país' : "Sélectionnez l'indicatif de votre pays"}
             </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>
+              {pt ? 'Endereço de entrega' : 'Adresse de livraison'}
+            </label>
+            <input
+              type="text"
+              value={form.adresse}
+              onChange={set('adresse')}
+              autoComplete="street-address"
+              placeholder={pt ? 'Rua, número, bairro, cidade' : 'Rue, numéro, quartier, ville'}
+              className="w-full border rounded-xl px-3 py-2.5 text-sm outline-none"
+              style={{ borderColor: 'var(--couleur-bordure)' }}
+            />
           </div>
 
           <div>

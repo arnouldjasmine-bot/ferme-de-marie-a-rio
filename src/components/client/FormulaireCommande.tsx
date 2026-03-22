@@ -49,19 +49,27 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
   // Préremplir avec le profil utilisateur
   useEffect(() => {
     if (profile) {
+      let telLocal = ''
+      if (profile.telephone) {
+        // Extraire l'indicatif pays par correspondance exacte (ordre: +351 avant +1)
+        const codesOrdonnes = ['+351', '+55', '+33', '+1']
+        const codeMatch = codesOrdonnes.find(c => profile.telephone!.startsWith(c))
+        if (codeMatch) {
+          const pays = PAYS.find(p => p.code === codeMatch)
+          if (pays) setPaysSelectionne(pays)
+          telLocal = profile.telephone.slice(codeMatch.length).trim()
+        } else {
+          telLocal = profile.telephone
+        }
+      }
       setForm(prev => ({
         ...prev,
-        prenom: profile.prenom || prev.prenom,
-        nom:    profile.nom    || prev.nom,
-        email:  user?.email    || prev.email,
-        telephone: profile.telephone
-          ? profile.telephone.replace(/^\+\d+/, '').trim()
-          : prev.telephone,
-        adresse: profile.adresse || prev.adresse,
+        prenom:    profile.prenom    || prev.prenom,
+        nom:       profile.nom       || prev.nom,
+        email:     user?.email       || prev.email,
+        telephone: telLocal          || prev.telephone,
+        adresse:   profile.adresse   || prev.adresse,
       }))
-      // Mettre à jour le pays selon la locale du profil
-      const p = PAYS.find(p => p.locale === profile.locale)
-      if (p) setPaysSelectionne(p)
     } else if (user?.email) {
       setForm(prev => ({ ...prev, email: user.email ?? prev.email }))
     }

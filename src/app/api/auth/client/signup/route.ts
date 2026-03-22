@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
     const nom       = formData.get('nom')?.toString()?.trim() ?? ''
     const email     = formData.get('email')?.toString()?.trim() ?? ''
     const telephone = formData.get('telephone')?.toString()?.trim() ?? ''
+    const adresse   = formData.get('adresse')?.toString()?.trim() ?? ''
     const password  = formData.get('password')?.toString() ?? ''
     const locale    = formData.get('locale')?.toString() ?? 'fr'
 
@@ -15,7 +16,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Champs manquants' }, { status: 400 })
     }
 
-    // Service role → compte créé directement sans confirmation email
     const supabase = createServiceClient()
 
     const { data, error } = await supabase.auth.admin.createUser({
@@ -27,6 +27,14 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ ok: false, error: error.message }, { status: 400 })
+    }
+
+    // Sauvegarder l'adresse dans le profil (le trigger ne la gère pas)
+    if (data.user && adresse) {
+      await supabase
+        .from('profiles')
+        .update({ adresse })
+        .eq('id', data.user.id)
     }
 
     return NextResponse.json({ ok: true, user: data.user })
