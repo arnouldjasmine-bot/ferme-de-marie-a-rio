@@ -5,10 +5,10 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 
 const PAYS = [
-  { code: '+55', flag: '🇧🇷', label: 'BR', locale: 'pt-BR' },
-  { code: '+33', flag: '🇫🇷', label: 'FR', locale: 'fr' },
-  { code: '+351', flag: '🇵🇹', label: 'PT', locale: 'pt-BR' },
-  { code: '+1',   flag: '🇺🇸', label: 'US', locale: 'fr' },
+  { code: '+55', flag: '🇧🇷', label: 'BR' },
+  { code: '+33', flag: '🇫🇷', label: 'FR' },
+  { code: '+351', flag: '🇵🇹', label: 'PT' },
+  { code: '+1',   flag: '🇺🇸', label: 'US' },
 ] as const
 type Pays = typeof PAYS[number]
 
@@ -17,10 +17,10 @@ export default function PageInscription() {
   const locale = (params?.locale as string) ?? 'fr'
   const router = useRouter()
 
-  const paysDefaut = PAYS.find(p => p.locale === locale) ?? PAYS[0]
+  // La langue est celle du site (URL), pas le pays du téléphone
+  const pt = locale === 'pt-BR'
+  const paysDefaut = locale === 'pt-BR' ? PAYS[0] : PAYS[1]
   const [paysSelectionne, setPaysSelectionne] = useState<Pays>(paysDefaut)
-  const localeEffective = paysSelectionne.locale
-  const pt = localeEffective === 'pt-BR'
 
   const [form, setForm] = useState({ prenom: '', nom: '', email: '', telephone: '', password: '' })
   const [erreur, setErreur]   = useState('')
@@ -46,7 +46,7 @@ export default function PageInscription() {
     fd.append('email', form.email.trim())
     fd.append('telephone', telephoneComplet)
     fd.append('password', form.password)
-    fd.append('locale', localeEffective)
+    fd.append('locale', locale)
 
     const res = await fetch('/api/auth/client/signup', { method: 'POST', body: fd })
     const json = await res.json() as { ok: boolean; error?: string }
@@ -59,7 +59,7 @@ export default function PageInscription() {
 
     setSucces(true)
     setLoading(false)
-    setTimeout(() => router.push(`/${localeEffective}/compte/connexion`), 2500)
+    setTimeout(() => router.push(`/${locale}/compte/connexion`), 2500)
   }
 
   if (succes) {
@@ -165,9 +165,7 @@ export default function PageInscription() {
               />
             </div>
             <p className="text-xs mt-1" style={{ color: 'var(--couleur-texte-doux)' }}>
-              {pt
-                ? `Selecionou ${paysSelectionne.flag} — seu pedido será em português`
-                : `Sélectionné ${paysSelectionne.flag} — votre commande sera en français`}
+              {pt ? 'Selecione o código do seu país' : 'Sélectionnez l\'indicatif de votre pays'}
             </p>
           </div>
 
