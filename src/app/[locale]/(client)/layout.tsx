@@ -1,4 +1,5 @@
 import NavClient from '@/components/client/NavClient'
+import BottomNavClient from '@/components/client/BottomNavClient'
 import AuthProvider from '@/components/client/AuthProvider'
 
 type Props = { children: React.ReactNode; params: Promise<{ locale: string }> }
@@ -13,6 +14,7 @@ export default async function ClientLayout({ children, params }: Props) {
         <main className="flex-1">
           {children}
         </main>
+        <BottomNavClient />
         <footer className="py-4" style={{ backgroundColor: 'var(--vert-sauge-fonce)', color: '#fff' }}>
           <div className="max-w-5xl mx-auto px-4 flex flex-row items-center justify-between gap-2">
             <div>

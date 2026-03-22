@@ -3,7 +3,7 @@
   "short_name": "Ferme de Marie",
   "description": "Produits fermiers frais, livrés chez vous au sud de Rio de Janeiro",
   "start_url": "/fr",
-  "scope": "/",
+  "scope": "/fr",
   "display": "standalone",
   "background_color": "#F5F2E9",
   "theme_color": "#4A5D4E",
@@ -29,7 +29,6 @@
       "type": "image/png"
     }
   ],
-  "screenshots": [],
   "shortcuts": [
     {
       "name": "Nos produits",
@@ -42,8 +41,8 @@
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Espace admin",
-      "url": "/login",
+      "name": "Mes commandes",
+      "url": "/fr/mes-commandes",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
