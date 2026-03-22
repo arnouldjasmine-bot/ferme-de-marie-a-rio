@@ -13,15 +13,15 @@ export default function AdresseAutocomplete({ value, onChange, label, locale }: 
   const inputRef = useRef<HTMLInputElement>(null)
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
   const [valide, setValide] = useState(false)
-  const [chargement, setChargement] = useState(true)
+  // true = Maps chargé avec autocomplete, false = fallback texte libre
+  const [mapsCharge, setMapsCharge] = useState(false)
 
   useEffect(() => {
-    // Attendre que l'API Google Maps soit chargée
     const init = () => {
       if (!inputRef.current || !window.google?.maps?.places) return
 
       autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
-        componentRestrictions: { country: 'br' }, // Brésil uniquement
+        componentRestrictions: { country: 'br' },
         fields: ['formatted_address', 'geometry'],
         types: ['address'],
       })
@@ -33,21 +33,27 @@ export default function AdresseAutocomplete({ value, onChange, label, locale }: 
           onChange(place.formatted_address, true)
         } else {
           setValide(false)
-          onChange('', false)
+          onChange(inputRef.current?.value ?? '', false)
         }
       })
 
-      setChargement(false)
+      setMapsCharge(true)
     }
 
     if (window.google?.maps?.places) {
       init()
     } else {
-      // Attendre le chargement du script
+      // Attendre max 5s, sinon fallback texte libre
+      let elapsed = 0
       const interval = setInterval(() => {
+        elapsed += 200
         if (window.google?.maps?.places) {
           clearInterval(interval)
           init()
+        } else if (elapsed >= 5000) {
+          clearInterval(interval)
+          // Fallback : accepte le texte libre, considéré valide dès 5 caractères
+          setMapsCharge(false)
         }
       }, 200)
       return () => clearInterval(interval)
@@ -55,10 +61,16 @@ export default function AdresseAutocomplete({ value, onChange, label, locale }: 
   }, [])
 
   function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
-    // Si l'utilisateur modifie manuellement après sélection, invalider
-    if (valide) {
-      setValide(false)
-      onChange(e.target.value, false)
+    const val = e.target.value
+    if (mapsCharge) {
+      // Avec Maps : invalider si l'utilisateur modifie après sélection
+      if (valide) setValide(false)
+      onChange(val, false)
+    } else {
+      // Sans Maps : accepter le texte libre (valide si >= 5 caractères)
+      const ok = val.length >= 5
+      setValide(ok)
+      onChange(val, ok)
     }
   }
 
@@ -85,7 +97,7 @@ export default function AdresseAutocomplete({ value, onChange, label, locale }: 
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-base">✓</span>
         )}
       </div>
-      {!valide && value.length > 3 && (
+      {mapsCharge && !valide && value.length > 3 && (
         <p className="text-xs mt-1" style={{ color: 'var(--terracotta)' }}>
           {locale === 'pt-BR'
             ? 'Selecione um endereço na lista de sugestões.'

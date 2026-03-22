@@ -42,8 +42,8 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
     }
     if (!adresseValide) {
       setErreur(locale === 'pt-BR'
-        ? 'Selecione um endereço válido na lista de sugestões.'
-        : 'Veuillez sélectionner une adresse valide dans les suggestions.')
+        ? 'Por favor, confirme seu endereço de entrega.'
+        : 'Veuillez confirmer votre adresse de livraison.')
       return
     }
     setEtape('pix')

@@ -11,6 +11,14 @@ export default function PageLogin() {
           boxShadow: 'var(--ombre-modale)'
         }}
       >
+        <a
+          href="/fr"
+          className="flex items-center gap-1 text-sm mb-6 transition-opacity hover:opacity-70"
+          style={{ color: 'var(--couleur-texte-doux)' }}
+        >
+          ← Retour au site
+        </a>
+
         <h1
           className="text-2xl font-bold text-center mb-2"
           style={{ color: 'var(--couleur-primaire-fonce)', fontFamily: 'var(--police-titre)' }}
