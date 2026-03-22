@@ -19,21 +19,33 @@ function emailHtml(opts: {
   telephone: string
   total: number
   lignesArticles: string
+  mode_livraison?: string
+  frais_livraison?: number
 }) {
   const pt = opts.locale === 'pt-BR'
+  const isRetrait = opts.mode_livraison === 'retrait'
   const titre      = pt ? 'Obrigado pelo seu pedido !' : 'Merci pour votre commande !'
   const bonjour    = pt ? `Olá <strong>${opts.prenom}</strong>,` : `Bonjour <strong>${opts.prenom}</strong>,`
-  const corps      = pt
-    ? 'Recebemos seu pedido e o comprovante PIX. Vamos prepará-lo com cuidado e entrar em contato para confirmar a entrega.'
-    : 'Nous avons bien reçu votre commande et votre comprovante de paiement PIX. Nous allons la préparer avec soin et vous contacter pour confirmer la livraison.'
+  const corps      = isRetrait
+    ? (pt
+        ? 'Recebemos seu pedido e o comprovante PIX. Vamos prepará-lo com cuidado. O horário de retirada será combinado pelo WhatsApp.'
+        : 'Nous avons bien reçu votre commande et votre comprovante PIX. Nous allons la préparer avec soin. L\'horaire de retrait sera défini par WhatsApp.')
+    : (pt
+        ? 'Recebemos seu pedido e o comprovante PIX. Vamos prepará-lo com cuidado e entrar em contato para confirmar a entrega (segunda-feira).'
+        : 'Nous avons bien reçu votre commande et votre comprovante PIX. Nous allons la préparer avec soin et vous contacter pour confirmer la livraison (lundi).')
   const titreCmde  = pt ? 'Seu pedido' : 'Votre commande'
   const colProduit = pt ? 'Produto' : 'Produit'
   const colQte     = pt ? 'Qtd' : 'Qté'
   const colMontant = pt ? 'Valor' : 'Montant'
   const totalLabel = pt ? 'Total pago' : 'Total payé'
-  const livrLabel  = pt ? 'Entrega em' : 'Livraison à'
+  const livrLabel  = isRetrait
+    ? (pt ? 'Retirada' : 'Retrait')
+    : (pt ? 'Entrega em' : 'Livraison à')
   const pied       = pt ? 'Dúvidas? Responda este e-mail ou fale no WhatsApp.' : 'Des questions ? Répondez simplement à cet email ou contactez-nous sur WhatsApp.'
   const footer     = 'La Ferme de Marie à Rio · Rio de Janeiro'
+  const fraisLigne = !isRetrait && opts.frais_livraison
+    ? `<tr><td style="padding:8px 12px;border-bottom:1px solid #e8e4d8;">${pt ? 'Taxa de entrega' : 'Frais de livraison'}</td><td style="padding:8px 12px;border-bottom:1px solid #e8e4d8;text-align:center;">—</td><td style="padding:8px 12px;border-bottom:1px solid #e8e4d8;text-align:right;">R$ ${opts.frais_livraison.toFixed(2)}</td></tr>`
+    : ''
 
   return `<!DOCTYPE html>
 <html lang="${opts.locale}">
@@ -57,7 +69,7 @@ function emailHtml(opts: {
               <th style="padding:8px 12px;text-align:right;">${colMontant}</th>
             </tr>
           </thead>
-          <tbody>${opts.lignesArticles}</tbody>
+          <tbody>${opts.lignesArticles}${fraisLigne}</tbody>
           <tfoot>
             <tr>
               <td colspan="2" style="padding:12px;font-weight:bold;color:#4A5D4E;font-size:15px;">${totalLabel}</td>
@@ -68,7 +80,10 @@ function emailHtml(opts: {
       </div>
       <div style="border-left:3px solid #93A27D;padding:12px 16px;background:#f4f7f4;border-radius:0 8px 8px 0;margin-bottom:24px;">
         <p style="margin:0 0 4px;font-size:12px;font-weight:bold;color:#4A5D4E;text-transform:uppercase;letter-spacing:1px;">${livrLabel}</p>
-        <p style="margin:0;font-size:14px;color:#3a3a2a;">${opts.adresse}</p>
+        ${isRetrait
+          ? `<p style="margin:0;font-size:14px;color:#3a3a2a;">${pt ? 'Horário a definir pelo WhatsApp' : 'Horaire à définir par WhatsApp'}</p>`
+          : `<p style="margin:0;font-size:14px;color:#3a3a2a;">${opts.adresse}</p>`
+        }
         <p style="margin:4px 0 0;font-size:13px;color:#5a5a4a;">📞 ${opts.telephone}</p>
       </div>
       <p style="margin:0;font-size:13px;color:#7a7a6a;line-height:1.6;">${pied}</p>
@@ -90,8 +105,10 @@ export async function POST(request: NextRequest) {
     const telephone = formData.get('telephone')?.toString() ?? ''
     const adresse   = formData.get('adresse')?.toString() ?? ''
     const total     = parseFloat(formData.get('total')?.toString() ?? '0')
-    const articles  = JSON.parse(formData.get('articles')?.toString() ?? '[]')
-    const locale    = formData.get('locale')?.toString() ?? 'fr'
+    const articles       = JSON.parse(formData.get('articles')?.toString() ?? '[]')
+    const locale         = formData.get('locale')?.toString() ?? 'fr'
+    const mode_livraison = formData.get('mode_livraison')?.toString() ?? 'livraison'
+    const frais_livraison = parseFloat(formData.get('frais_livraison')?.toString() ?? '0')
     const comprovante = formData.get('comprovante') as File | null
 
     const supabase = createServiceClient()
@@ -117,7 +134,7 @@ export async function POST(request: NextRequest) {
       .insert({
         prenom, nom, email, telephone, adresse,
         total, articles, comprovante_url: comprovanteUrl,
-        statut: 'en_attente', locale,
+        statut: 'en_attente', locale, mode_livraison, frais_livraison,
       })
       .select()
       .single()
@@ -154,7 +171,7 @@ export async function POST(request: NextRequest) {
           replyTo: 'arnould.jasmine@gmail.com',
           to: email,
           subject,
-          html: emailHtml({ locale, prenom, adresse, telephone, total, lignesArticles }),
+          html: emailHtml({ locale, prenom, adresse, telephone, total, lignesArticles, mode_livraison, frais_livraison }),
         })
       } catch (emailErr) {
         console.error('Erreur envoi email:', emailErr)

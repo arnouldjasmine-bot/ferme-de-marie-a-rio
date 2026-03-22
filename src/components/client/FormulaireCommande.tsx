@@ -7,27 +7,30 @@ import { usePanier } from '@/lib/panier-context'
 import AdresseAutocomplete from './AdresseAutocomplete'
 
 type Etape = 'formulaire' | 'pix' | 'confirmation'
+type Mode  = 'retrait' | 'livraison'
 
 // ⚠️ À remplacer par la vraie clé PIX de la ferme
-const PIX_CLE = 'lafermedemarie@gmail.com'
+const PIX_CLE          = 'lafermedemarie@gmail.com'
 const PIX_BENEFICIAIRE = 'Ferme de Marie à Rio'
-const MONTANT_MINIMUM = 30
+const FRAIS_LIVRAISON  = 20
+const MONTANT_MINIMUM  = 30   // s'applique uniquement en mode livraison
 
 export default function FormulaireCommande({ locale }: { locale: string }) {
-  const t = useTranslations('commande')
+  const t    = useTranslations('commande')
   const tErr = useTranslations('erreurs')
   const { articles, totalPrix, viderPanier } = usePanier()
+  const pt = locale === 'pt-BR'
 
-  const [etape, setEtape] = useState<Etape>('formulaire')
+  const [etape, setEtape]           = useState<Etape>('formulaire')
+  const [mode, setMode]             = useState<Mode>('livraison')
   const [chargement, setChargement] = useState(false)
-  const [erreur, setErreur] = useState('')
-  const [copie, setCopie] = useState(false)
-  const [comprovante, setComprovante] = useState<File | null>(null)
+  const [erreur, setErreur]         = useState('')
+  const [copie, setCopie]           = useState(false)
+  const [comprovante, setComprovante]             = useState<File | null>(null)
   const [comprovantePreview, setComprovantePreview] = useState<string | null>(null)
-  const [adresseValide, setAdresseValide] = useState(false)
-  const [form, setForm] = useState({
-    prenom: '', nom: '', email: '', telephone: '', adresse: ''
-  })
+  const [form, setForm] = useState({ prenom: '', nom: '', email: '', telephone: '', adresse: '' })
+
+  const totalFinal = totalPrix + (mode === 'livraison' ? FRAIS_LIVRAISON : 0)
 
   function set(champ: keyof typeof form) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -36,32 +39,32 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    // Lire directement du DOM pour capturer l'autofill iOS/Android
     const fd = new FormData(e.currentTarget)
     const prenom    = (fd.get('prenom')    as string ?? form.prenom).trim()
     const nom       = (fd.get('nom')       as string ?? form.nom).trim()
     const email     = (fd.get('email')     as string ?? form.email).trim()
     const telephone = (fd.get('telephone') as string ?? form.telephone).trim()
-    const adresse   = form.adresse || (fd.get('adresse') as string ?? '').trim()
+    const adresse   = mode === 'livraison'
+      ? (form.adresse || (fd.get('adresse') as string ?? '').trim())
+      : pt ? 'Retirada na ferme' : 'Retrait à la ferme'
 
-    if (!prenom || !nom || !email || !telephone || !adresse) {
+    if (!prenom || !nom || !email || !telephone) {
       setErreur(tErr('champsRequis'))
       return
     }
-    if (adresse.length < 5) {
-      setErreur(locale === 'pt-BR'
+    if (mode === 'livraison' && adresse.length < 5) {
+      setErreur(pt
         ? 'Por favor, informe seu endereço completo.'
         : 'Veuillez saisir votre adresse complète.')
       return
     }
-    if (totalPrix < MONTANT_MINIMUM) {
-      setErreur(locale === 'pt-BR'
-        ? `Pedido mínimo de R$ ${MONTANT_MINIMUM.toFixed(2)}.`
-        : `Commande minimum de R$ ${MONTANT_MINIMUM.toFixed(2)}.`)
+    if (mode === 'livraison' && totalPrix < MONTANT_MINIMUM) {
+      setErreur(pt
+        ? `Pedido mínimo de R$ ${MONTANT_MINIMUM.toFixed(2)} para entrega.`
+        : `Commande minimum de R$ ${MONTANT_MINIMUM.toFixed(2)} pour la livraison.`)
       return
     }
-    // Mettre à jour le form state avec les valeurs lues du DOM
-    setForm({ prenom, nom, email, telephone, adresse })
+    setForm(prev => ({ ...prev, prenom, nom, email, telephone, adresse }))
     setEtape('pix')
   }
 
@@ -70,10 +73,9 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
     setComprovante(file)
     if (!file) { setComprovantePreview(null); return }
     if (file.type.startsWith('image/')) {
-      const url = URL.createObjectURL(file)
-      setComprovantePreview(url)
+      setComprovantePreview(URL.createObjectURL(file))
     } else {
-      setComprovantePreview(null) // PDF — pas de preview image
+      setComprovantePreview(null)
     }
   }
 
@@ -87,7 +89,9 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
       data.append('email', form.email)
       data.append('telephone', form.telephone)
       data.append('adresse', form.adresse)
-      data.append('total', totalPrix.toString())
+      data.append('total', totalFinal.toString())
+      data.append('mode_livraison', mode)
+      data.append('frais_livraison', mode === 'livraison' ? FRAIS_LIVRAISON.toString() : '0')
       data.append('articles', JSON.stringify(articles.map(a => ({
         id: a.produit.id,
         nom: a.produit.nom,
@@ -97,8 +101,8 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
       data.append('comprovante', comprovante)
       data.append('locale', locale)
       await fetch('/api/commandes', { method: 'POST', body: data })
-    } catch (e) {
-      console.error(e)
+    } catch (err) {
+      console.error(err)
     }
     viderPanier()
     setEtape('confirmation')
@@ -115,14 +119,14 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
     return (
       <div className="text-center py-16">
         <p className="mb-6" style={{ color: 'var(--couleur-texte-doux)' }}>
-          {locale === 'pt-BR' ? 'Seu carrinho está vazio.' : 'Votre panier est vide.'}
+          {pt ? 'Seu carrinho está vazio.' : 'Votre panier est vide.'}
         </p>
         <Link
           href={`/${locale}/produits`}
           className="inline-block px-6 py-3 rounded-full text-white font-medium"
           style={{ backgroundColor: 'var(--vert-sauge)' }}
         >
-          {locale === 'pt-BR' ? 'Ver produtos' : 'Voir les produits'}
+          {pt ? 'Ver produtos' : 'Voir les produits'}
         </Link>
       </div>
     )
@@ -139,8 +143,13 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
         <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
           {t('confirmation.titre')}
         </h2>
-        <p className="mb-8 max-w-sm mx-auto" style={{ color: 'var(--couleur-texte-doux)' }}>
+        <p className="mb-2 max-w-sm mx-auto" style={{ color: 'var(--couleur-texte-doux)' }}>
           {t('confirmation.message')}
+        </p>
+        <p className="text-sm mb-8 max-w-sm mx-auto" style={{ color: 'var(--couleur-texte-doux)' }}>
+          {pt
+            ? 'O horário de retirada/entrega (segunda-feira) será confirmado pelo WhatsApp.'
+            : 'L\'horaire de retrait/livraison (lundi) sera confirmé par WhatsApp.'}
         </p>
         <Link
           href={`/${locale}`}
@@ -172,7 +181,14 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
           <p className="text-white/70 text-sm">{t('pix.titre')}</p>
           <div className="mt-4">
             <p className="text-white/60 text-xs uppercase tracking-widest">{t('pix.montant')}</p>
-            <p className="text-4xl font-bold mt-1">R$ {totalPrix.toFixed(2)}</p>
+            {mode === 'livraison' && (
+              <div className="mt-1 text-white/60 text-xs">
+                <span>{pt ? 'Produtos' : 'Produits'} R$ {totalPrix.toFixed(2)}</span>
+                <span className="mx-2">+</span>
+                <span>{pt ? 'Entrega' : 'Livraison'} R$ {FRAIS_LIVRAISON.toFixed(2)}</span>
+              </div>
+            )}
+            <p className="text-4xl font-bold mt-1">R$ {totalFinal.toFixed(2)}</p>
           </div>
         </div>
 
@@ -182,19 +198,14 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
             {t('pix.instruction')}
           </p>
 
-          {/* Placeholder QR code — remplacer par le vrai QR code généré par votre banque/API PIX */}
           <div className="border-4 rounded-xl p-3" style={{ borderColor: 'var(--vert-sauge-fonce)' }}>
             <svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Coin haut-gauche */}
               <rect x="10" y="10" width="50" height="50" rx="4" fill="none" stroke="#2E3D31" strokeWidth="6"/>
               <rect x="22" y="22" width="26" height="26" rx="2" fill="#2E3D31"/>
-              {/* Coin haut-droite */}
               <rect x="100" y="10" width="50" height="50" rx="4" fill="none" stroke="#2E3D31" strokeWidth="6"/>
               <rect x="112" y="22" width="26" height="26" rx="2" fill="#2E3D31"/>
-              {/* Coin bas-gauche */}
               <rect x="10" y="100" width="50" height="50" rx="4" fill="none" stroke="#2E3D31" strokeWidth="6"/>
               <rect x="22" y="112" width="26" height="26" rx="2" fill="#2E3D31"/>
-              {/* Données centrales simulées */}
               <rect x="72" y="10" width="8" height="8" fill="#2E3D31"/>
               <rect x="84" y="10" width="8" height="8" fill="#2E3D31"/>
               <rect x="72" y="22" width="8" height="8" fill="#2E3D31"/>
@@ -227,7 +238,6 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
             </svg>
           </div>
 
-          {/* Clé PIX copiable */}
           <div className="w-full rounded-xl p-4" style={{ backgroundColor: '#f0f4f0' }}>
             <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--vert-sauge-fonce)' }}>
               {t('pix.cle')}
@@ -252,7 +262,6 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
           </div>
         </div>
 
-        {/* Info */}
         <div className="rounded-xl p-4 text-sm text-center" style={{ backgroundColor: '#fdf8f0', border: '1px solid #f0e8d0' }}>
           <p style={{ color: 'var(--couleur-texte-doux)' }}>ℹ️ {t('pix.info')}</p>
         </div>
@@ -260,10 +269,10 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
         {/* Upload comprovante */}
         <div className="rounded-2xl p-5 flex flex-col gap-3" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
           <p className="font-semibold text-sm" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
-            {locale === 'pt-BR' ? '📎 Comprovante de pagamento' : '📎 Preuve de paiement (comprovante)'}
+            {pt ? '📎 Comprovante de pagamento' : '📎 Preuve de paiement (comprovante)'}
           </p>
           <p className="text-xs" style={{ color: 'var(--couleur-texte-doux)' }}>
-            {locale === 'pt-BR'
+            {pt
               ? 'Anexe a captura de tela ou PDF do comprovante PIX.'
               : 'Joignez la capture d\'écran ou le PDF de votre comprovante PIX.'}
           </p>
@@ -278,7 +287,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
                 <path d="M4 26 L28 26" stroke="#93A27D" strokeWidth="2.5" strokeLinecap="round"/>
               </svg>
               <span className="text-sm font-medium" style={{ color: 'var(--vert-sauge-fonce)' }}>
-                {locale === 'pt-BR' ? 'Selecionar arquivo' : 'Choisir un fichier'}
+                {pt ? 'Selecionar arquivo' : 'Choisir un fichier'}
               </span>
               <span className="text-xs" style={{ color: 'var(--couleur-texte-doux)' }}>JPG, PNG ou PDF</span>
               <input
@@ -312,7 +321,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
                   className="text-xs underline"
                   style={{ color: 'var(--couleur-texte-doux)' }}
                 >
-                  {locale === 'pt-BR' ? 'Remover' : 'Supprimer'}
+                  {pt ? 'Remover' : 'Supprimer'}
                 </button>
               </div>
             </div>
@@ -333,7 +342,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
           className="text-sm text-center underline"
           style={{ color: 'var(--couleur-texte-doux)' }}
         >
-          {locale === 'pt-BR' ? '← Voltar' : '← Retour'}
+          {pt ? '← Voltar' : '← Retour'}
         </button>
       </div>
     )
@@ -346,14 +355,61 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
     { id: 'telephone', label: t('telephone'), type: 'tel', autocomplete: 'tel' },
   ] as const
 
-  const montantManquant = MONTANT_MINIMUM - totalPrix
-
   return (
     <div className="flex flex-col gap-6">
+      {/* Choix retrait / livraison */}
+      <div className="rounded-2xl p-5" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
+        <h2 className="font-semibold mb-3" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
+          {pt ? 'Como quer receber?' : 'Mode de réception'}
+        </h2>
+        <div className="grid grid-cols-2 gap-3">
+          {(['retrait', 'livraison'] as Mode[]).map(m => {
+            const actif = mode === m
+            const emoji = m === 'retrait' ? '🏡' : '🛵'
+            const titre = m === 'retrait'
+              ? (pt ? 'Retirada' : 'Retrait')
+              : (pt ? 'Entrega' : 'Livraison')
+            const sous = m === 'retrait'
+              ? (pt ? 'Você vem buscar' : 'Vous venez chercher')
+              : (pt ? '+R$ 20 · Entrega na segunda' : '+R$ 20 · Livraison lundi')
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className="rounded-xl p-4 text-left transition-all border-2"
+                style={{
+                  borderColor: actif ? 'var(--vert-sauge-fonce)' : 'var(--couleur-bordure)',
+                  backgroundColor: actif ? '#eef3ee' : 'transparent',
+                }}
+              >
+                <p className="text-2xl mb-1">{emoji}</p>
+                <p className="font-semibold text-sm" style={{ color: 'var(--vert-sauge-fonce)' }}>{titre}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--couleur-texte-doux)' }}>{sous}</p>
+              </button>
+            )
+          })}
+        </div>
+        {mode === 'retrait' && (
+          <p className="text-xs mt-3 px-1" style={{ color: 'var(--couleur-texte-doux)' }}>
+            📱 {pt
+              ? 'O horário de retirada será combinado pelo WhatsApp após o pagamento.'
+              : 'L\'horaire de retrait sera défini par WhatsApp après le paiement.'}
+          </p>
+        )}
+        {mode === 'livraison' && (
+          <p className="text-xs mt-3 px-1" style={{ color: 'var(--couleur-texte-doux)' }}>
+            📱 {pt
+              ? 'O horário de entrega (segunda-feira) será confirmado pelo WhatsApp.'
+              : 'L\'horaire de livraison (lundi) sera confirmé par WhatsApp.'}
+          </p>
+        )}
+      </div>
+
       {/* Récap panier */}
       <div className="rounded-2xl p-5" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
         <h2 className="font-semibold mb-3" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
-          {locale === 'pt-BR' ? 'Resumo do pedido' : 'Récapitulatif'}
+          {pt ? 'Resumo do pedido' : 'Récapitulatif'}
         </h2>
         {articles.map(a => (
           <div key={a.produit.id} className="flex justify-between text-sm py-1">
@@ -361,15 +417,23 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
             <span className="font-medium" style={{ color: 'var(--couleur-texte)' }}>R$ {(a.produit.prix * a.quantite).toFixed(2)}</span>
           </div>
         ))}
+        {mode === 'livraison' && (
+          <div className="flex justify-between text-sm py-1">
+            <span style={{ color: 'var(--couleur-texte-doux)' }}>
+              {pt ? 'Taxa de entrega' : 'Frais de livraison'}
+            </span>
+            <span style={{ color: 'var(--couleur-texte-doux)' }}>R$ {FRAIS_LIVRAISON.toFixed(2)}</span>
+          </div>
+        )}
         <div className="flex justify-between font-bold mt-3 pt-3" style={{ borderTop: '1px solid var(--couleur-bordure)' }}>
           <span style={{ color: 'var(--couleur-texte)' }}>{t('total')}</span>
-          <span style={{ color: 'var(--vert-sauge-fonce)' }}>R$ {totalPrix.toFixed(2)}</span>
+          <span style={{ color: 'var(--vert-sauge-fonce)' }}>R$ {totalFinal.toFixed(2)}</span>
         </div>
-        {montantManquant > 0 && (
+        {mode === 'livraison' && totalPrix < MONTANT_MINIMUM && (
           <p className="text-xs mt-2 text-center" style={{ color: 'var(--terracotta)' }}>
-            {locale === 'pt-BR'
-              ? `Adicione R$ ${montantManquant.toFixed(2)} para atingir o pedido mínimo de R$ ${MONTANT_MINIMUM}.`
-              : `Ajoutez R$ ${montantManquant.toFixed(2)} pour atteindre le minimum de commande (R$ ${MONTANT_MINIMUM}).`}
+            {pt
+              ? `Adicione R$ ${(MONTANT_MINIMUM - totalPrix).toFixed(2)} para atingir o mínimo de entrega (R$ ${MONTANT_MINIMUM}).`
+              : `Ajoutez R$ ${(MONTANT_MINIMUM - totalPrix).toFixed(2)} pour atteindre le minimum de livraison (R$ ${MONTANT_MINIMUM}).`}
           </p>
         )}
       </div>
@@ -398,21 +462,22 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
           ))}
         </div>
 
-        <AdresseAutocomplete
-          value={form.adresse}
-          label={t('adresse')}
-          locale={locale}
-          onChange={(adresse, valide) => {
-            setForm(prev => ({ ...prev, adresse }))
-            setAdresseValide(valide)
-          }}
-        />
+        {mode === 'livraison' && (
+          <AdresseAutocomplete
+            value={form.adresse}
+            label={t('adresse')}
+            locale={locale}
+            onChange={(adresse, valide) => {
+              setForm(prev => ({ ...prev, adresse }))
+            }}
+          />
+        )}
 
         {erreur && <p className="text-sm" style={{ color: 'var(--couleur-erreur)' }}>{erreur}</p>}
 
         <button
           type="submit"
-          disabled={totalPrix < MONTANT_MINIMUM}
+          disabled={mode === 'livraison' && totalPrix < MONTANT_MINIMUM}
           className="w-full py-3.5 rounded-full text-white font-semibold text-base transition-all hover:opacity-90 flex items-center justify-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed"
           style={{ backgroundColor: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-dm-sans)' }}
         >
