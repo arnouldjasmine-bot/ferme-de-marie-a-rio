@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { type Produit } from '@/types'
 import { usePanier } from '@/lib/panier-context'
 import { useAuth } from './AuthProvider'
 import BoutonFavori from './BoutonFavori'
+import { createBrowserClient } from '@supabase/ssr'
 
 type CategorieItem = { id: string; value: string; label_fr: string; label_pt: string; emoji: string }
 
@@ -38,10 +39,26 @@ export default function CatalogueProduits({ produits, locale, categories }: Prop
   const { user } = useAuth()
   const [filtreCategorie, setFiltreCategorie] = useState<string>('toutes')
   const [ajoutes, setAjoutes] = useState<Set<string>>(new Set())
+  const [favorisIds, setFavorisIds] = useState<Set<string>>(new Set())
 
-  const produitsFiltres = filtreCategorie === 'toutes'
-    ? produits
-    : produits.filter(p => p.categorie === filtreCategorie)
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+
+  useEffect(() => {
+    if (!user) { setFavorisIds(new Set()); return }
+    supabase.from('favoris').select('product_id').eq('user_id', user.id).then(({ data }) => {
+      if (data) setFavorisIds(new Set(data.map((f: { product_id: string }) => f.product_id)))
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
+
+  const produitsFiltres = filtreCategorie === 'favoris'
+    ? produits.filter(p => favorisIds.has(p.id))
+    : filtreCategorie === 'toutes'
+      ? produits
+      : produits.filter(p => p.categorie === filtreCategorie)
 
   function handleAjouter(produit: Produit) {
     ajouterAuPanier(produit)
@@ -71,6 +88,19 @@ export default function CatalogueProduits({ produits, locale, categories }: Prop
         >
           {locale === 'pt-BR' ? 'Todos' : 'Tous'}
         </button>
+        {user && favorisIds.size > 0 && (
+          <button
+            onClick={() => setFiltreCategorie('favoris')}
+            className="px-4 py-2 rounded-full text-sm font-medium transition-colors"
+            style={{
+              backgroundColor: filtreCategorie === 'favoris' ? 'var(--terracotta)' : 'var(--couleur-fond-carte)',
+              color: filtreCategorie === 'favoris' ? '#fff' : 'var(--couleur-texte)',
+              boxShadow: 'var(--ombre-carte)'
+            }}
+          >
+            ❤️ {locale === 'pt-BR' ? 'Meus favoritos' : 'Mes favoris'}
+          </button>
+        )}
         {categories.map(cat => (
           <button
             key={cat.value}
@@ -117,7 +147,16 @@ export default function CatalogueProduits({ produits, locale, categories }: Prop
                 {/* Bouton favori — visible uniquement si connecté */}
                 {user && (
                   <div className="absolute top-2 right-2">
-                    <BoutonFavori productId={produit.id} locale={locale} />
+                    <BoutonFavori
+                      productId={produit.id}
+                      locale={locale}
+                      initialFavori={favorisIds.has(produit.id)}
+                      onToggle={(isFav) => setFavorisIds(prev => {
+                        const next = new Set(prev)
+                        if (isFav) next.add(produit.id); else next.delete(produit.id)
+                        return next
+                      })}
+                    />
                   </div>
                 )}
               </div>

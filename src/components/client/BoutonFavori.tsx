@@ -8,12 +8,14 @@ import { useAuth } from './AuthProvider'
 interface Props {
   productId: string
   locale: string
+  initialFavori?: boolean
+  onToggle?: (isFavori: boolean) => void
 }
 
-export default function BoutonFavori({ productId, locale }: Props) {
+export default function BoutonFavori({ productId, locale, initialFavori, onToggle }: Props) {
   const { user } = useAuth()
   const router = useRouter()
-  const [estFavori, setEstFavori] = useState(false)
+  const [estFavori, setEstFavori] = useState(initialFavori ?? false)
   const [loading, setLoading]     = useState(false)
 
   const supabase = createBrowserClient(
@@ -21,8 +23,14 @@ export default function BoutonFavori({ productId, locale }: Props) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
 
+  // Sync if parent passes initialFavori (e.g. after bulk fetch in catalogue)
   useEffect(() => {
-    if (!user) return
+    if (initialFavori !== undefined) setEstFavori(initialFavori)
+  }, [initialFavori])
+
+  // Only fetch individually when used standalone (no initialFavori provided)
+  useEffect(() => {
+    if (!user || initialFavori !== undefined) return
     verifier()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, productId])
@@ -52,20 +60,21 @@ export default function BoutonFavori({ productId, locale }: Props) {
     const token = await getToken()
     if (!token) return
     setLoading(true)
+    const nextVal = !estFavori
     if (estFavori) {
       await fetch(`/api/favoris?product_id=${productId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
-      setEstFavori(false)
     } else {
       await fetch('/api/favoris', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ product_id: productId }),
       })
-      setEstFavori(true)
     }
+    setEstFavori(nextVal)
+    onToggle?.(nextVal)
     setLoading(false)
   }
 

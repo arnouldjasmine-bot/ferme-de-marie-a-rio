@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { useAuth } from '@/components/client/AuthProvider'
 import FormulaireAvis from '@/components/client/FormulaireAvis'
+import BoutonNotifications from '@/components/client/BoutonNotifications'
 
 const STATUT_LABELS: Record<string, { fr: string; pt: string; color: string }> = {
   en_attente: { fr: 'En attente',  pt: 'Aguardando', color: '#D27D56' },
@@ -87,6 +88,13 @@ export default function PageMesCommandes() {
       <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--police-titre, var(--font-playfair))' }}>
         {pt ? 'Meus pedidos' : 'Mes commandes'}
       </h1>
+
+      {/* Bouton notifications — visible si connecté */}
+      {!loading && user && (
+        <div className="mb-4">
+          <BoutonNotifications locale={locale} />
+        </div>
+      )}
 
       {/* Pendant le chargement de l'auth → spinner uniquement */}
       {loading && (
@@ -201,9 +209,9 @@ export default function PageMesCommandes() {
                 </div>
 
                 {/* Actions */}
-                {(c.statut === 'confirmee' || finalisee) && (
+                {(c.statut === 'confirmee' || c.statut === 'livree' || finalisee) && (
                   <div className="px-4 pb-4 flex flex-wrap gap-2">
-                    {c.statut === 'confirmee' && !finalisee && (
+                    {(c.statut === 'confirmee' || c.statut === 'livree') && !finalisee && (
                       <a
                         href={`/payer/${c.id}`}
                         className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-white text-sm font-medium transition-opacity hover:opacity-90"
