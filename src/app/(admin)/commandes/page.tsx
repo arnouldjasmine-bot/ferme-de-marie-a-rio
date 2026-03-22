@@ -1,5 +1,6 @@
 import ComprovanteViewer from '@/components/admin/ComprovanteViewer'
 import BoutonsStatut from '@/components/admin/BoutonsStatut'
+import BoutonLienPaiement from '@/components/admin/BoutonLienPaiement'
 import { createServiceClient } from '@/lib/supabase/service'
 
 type Article = { nom: string; quantite: number; prix: number }
@@ -98,7 +99,10 @@ export default async function PageCommandes() {
             {/* Comprovante + statut */}
             <div className="px-5 pb-4 flex flex-col gap-3">
               {c.comprovante_url && <ComprovanteViewer url={c.comprovante_url} />}
-              <BoutonsStatut id={c.id} statut={c.statut} />
+              <div className="flex flex-wrap items-center gap-2">
+                <BoutonsStatut id={c.id} statut={c.statut} />
+                <BoutonLienPaiement id={c.id} />
+              </div>
             </div>
           </div>
         ))}
