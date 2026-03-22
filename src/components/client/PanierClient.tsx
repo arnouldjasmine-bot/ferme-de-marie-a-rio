@@ -93,13 +93,30 @@ export default function PanierClient({ locale }: { locale: string }) {
             R$ {totalPrix.toFixed(2)}
           </span>
         </div>
-        <Link
-          href={`/${locale}/commande`}
-          className="block w-full text-center py-3 rounded-lg text-white font-semibold transition-opacity hover:opacity-90"
-          style={{ backgroundColor: 'var(--couleur-primaire)' }}
-        >
-          {t('commander')}
-        </Link>
+        {totalPrix < 30 && (
+          <p className="text-xs text-center mb-3" style={{ color: 'var(--terracotta)' }}>
+            {locale === 'pt-BR'
+              ? `Adicione R$ ${(30 - totalPrix).toFixed(2)} para atingir o pedido mínimo de R$ 30`
+              : `Ajoutez R$ ${(30 - totalPrix).toFixed(2)} pour atteindre le minimum de commande (R$ 30)`}
+          </p>
+        )}
+        {totalPrix >= 30 ? (
+          <Link
+            href={`/${locale}/commande`}
+            className="block w-full text-center py-3 rounded-lg text-white font-semibold transition-opacity hover:opacity-90"
+            style={{ backgroundColor: 'var(--couleur-primaire)' }}
+          >
+            {t('commander')}
+          </Link>
+        ) : (
+          <button
+            disabled
+            className="block w-full text-center py-3 rounded-lg text-white font-semibold opacity-40 cursor-not-allowed"
+            style={{ backgroundColor: 'var(--couleur-primaire)' }}
+          >
+            {t('commander')}
+          </button>
+        )}
         <Link
           href={`/${locale}/produits`}
           className="block w-full text-center py-2 mt-3 text-sm transition-opacity hover:opacity-70"
