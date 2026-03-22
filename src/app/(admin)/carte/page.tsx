@@ -45,7 +45,7 @@ export default async function PageAdminCarte() {
     ? await Promise.all(
         commandes.map(async c => {
           const coords = await geocoder(c.adresse, apiKey)
-          return coords ? { ...c, createdAt: c.created_at, ...coords } : null
+          return coords ? { ...c, ...coords } : null
         })
       ).then(r => r.filter(Boolean) as (Commande & { lat: number; lng: number })[])
     : []
