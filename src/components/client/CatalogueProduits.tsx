@@ -124,6 +124,9 @@ export default function CatalogueProduits({ produits, locale }: Props) {
                   </span>
                   <span className="text-xs" style={{ color: 'var(--couleur-texte-doux)' }}>/ {tradUnit(produit.unite, locale)}</span>
                 </div>
+                <p className="text-xs" style={{ color: produit.stock <= 3 ? 'var(--couleur-attention)' : 'var(--couleur-texte-doux)' }}>
+                  {locale === 'pt-BR' ? `Estoque: ${produit.stock}` : `Stock : ${produit.stock}`}
+                </p>
 
                 {produit.stock === 0
                   ? <p className="text-xs text-center py-2 rounded-lg" style={{ backgroundColor: 'var(--couleur-accent)', color: 'var(--couleur-texte-doux)' }}>
