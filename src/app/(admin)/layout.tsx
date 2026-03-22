@@ -5,7 +5,14 @@ import BoutonRefreshMobile from '@/components/admin/BoutonRefreshMobile'
 
 export const metadata: Metadata = {
   title: 'Admin — Ferme de Marie à Rio',
-  robots: { index: false, follow: false }
+  robots: { index: false, follow: false },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'FM Admin',
+  },
+  themeColor: '#4A5D4E',
 }
 
 type Props = {
@@ -15,6 +22,13 @@ type Props = {
 export default function AdminLayout({ children }: Props) {
   return (
     <html lang="fr">
+      <head>
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="FM Admin" />
+      </head>
       <body>
         <div className="min-h-screen flex">
           <SidebarAdmin />

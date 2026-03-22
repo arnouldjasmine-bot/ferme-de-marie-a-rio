@@ -2,19 +2,12 @@
 
 import { useState } from 'react'
 
-function formatTelWhatsApp(tel: string, locale?: string): string {
-  // Supprimer tout sauf les chiffres
-  let digits = tel.replace(/\D/g, '')
-  // Déjà un indicatif pays (≥12 chiffres) → on garde tel quel
-  if (digits.length >= 12) return digits
-  // Indicatif selon la locale
-  const indicatif = locale === 'fr' ? '33' : '55'
-  // Supprimer le 0 initial si présent (ex: France 0612... → 612...)
-  if (digits.startsWith('0')) digits = digits.slice(1)
-  return indicatif + digits
+function formatTelWhatsApp(tel: string): string {
+  // Supprimer tout sauf les chiffres (le + du début aussi)
+  return tel.replace(/\D/g, '')
 }
 
-export default function BoutonLienPaiement({ id, telephone, locale }: { id: string; telephone?: string; locale?: string }) {
+export default function BoutonLienPaiement({ id, telephone }: { id: string; telephone?: string }) {
   const [copie, setCopie] = useState(false)
 
   function getLien() {
@@ -32,7 +25,7 @@ export default function BoutonLienPaiement({ id, telephone, locale }: { id: stri
     const message = encodeURIComponent(
       `Olá! 🌿 Segue o link para pagamento do seu pedido na Ferme de Marie:\n\n${lien}\n\nObrigada!`
     )
-    const numero = telephone ? formatTelWhatsApp(telephone, locale) : ''
+    const numero = telephone ? formatTelWhatsApp(telephone) : ''
     const url = numero
       ? `https://wa.me/${numero}?text=${message}`
       : `https://wa.me/?text=${message}`
