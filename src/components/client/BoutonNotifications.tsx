@@ -68,13 +68,25 @@ export default function BoutonNotifications({ locale }: Props) {
         return
       }
 
-      // Timeout 8s pour éviter un blocage si le SW n'est pas encore actif
-      const reg = await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Service worker timeout')), 8000)
-        ),
-      ])
+      // Récupérer ou enregistrer le SW — ne pas bloquer sur ready
+      let reg = await navigator.serviceWorker.getRegistration('/')
+      if (!reg) {
+        reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        // Attendre l'activation avec timeout 15s
+        if (!reg.active) {
+          await Promise.race([
+            new Promise<void>(resolve => {
+              const worker = reg!.installing ?? reg!.waiting
+              if (!worker) { resolve(); return }
+              worker.addEventListener('statechange', function onState() {
+                if (worker.state === 'activated') { resolve() }
+              })
+              reg!.addEventListener('updatefound', () => resolve())
+            }),
+            new Promise<void>(resolve => setTimeout(resolve, 15000)),
+          ])
+        }
+      }
       const permission = await Notification.requestPermission()
       if (permission === 'denied') {
         setErreur(pt ? 'Permissão recusada nas configurações do navegador.' : 'Permission refusée dans les paramètres du navigateur.')
