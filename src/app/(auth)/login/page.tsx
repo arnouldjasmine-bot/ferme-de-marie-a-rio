@@ -54,7 +54,7 @@ function LoginForm() {
           className="text-2xl font-bold text-center mb-2"
           style={{ color: 'var(--couleur-primaire-fonce)', fontFamily: 'var(--police-titre)' }}
         >
-          Ferme de Marie à Rio
+          La Ferme de Marie à Rio
         </h1>
         <p className="text-center mb-8 text-sm" style={{ color: 'var(--couleur-texte-doux)' }}>
           Espace administrateur

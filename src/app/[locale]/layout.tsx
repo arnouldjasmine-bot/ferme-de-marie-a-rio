@@ -12,13 +12,13 @@ const dancing = Dancing_Script({ subsets: ['latin'], variable: '--font-dancing' 
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' })
 
 export const metadata: Metadata = {
-  title: 'Ferme de Marie à Rio',
+  title: 'La Ferme de Marie à Rio',
   description: 'Produits fermiers frais, livrés chez vous au sud de Rio de Janeiro',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Ferme de Marie à Rio',
+    title: 'La Ferme de Marie à Rio',
   },
   formatDetection: { telephone: false },
   themeColor: '#4A5D4E',

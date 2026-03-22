@@ -37,7 +37,12 @@ export default async function PageCommandes() {
     .from('orders')
     .select('*')
     .order('created_at', { ascending: false })
-  const commandes: Commande[] = data ?? []
+  const raw: Commande[] = data ?? []
+  // Livrées en bas, reste par date
+  const commandes = [
+    ...raw.filter(c => c.statut !== 'livree'),
+    ...raw.filter(c => c.statut === 'livree'),
+  ]
 
   return (
     <div>

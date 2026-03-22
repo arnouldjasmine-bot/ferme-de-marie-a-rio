@@ -1,6 +1,7 @@
-import { readFile } from 'fs/promises'
-import path from 'path'
 import CarteLivraisons from '@/components/admin/CarteLivraisons'
+import { createServiceClient } from '@/lib/supabase/service'
+
+export const dynamic = 'force-dynamic'
 
 type Commande = {
   id: string
@@ -9,7 +10,7 @@ type Commande = {
   adresse: string
   total: number
   statut: string
-  createdAt: string
+  created_at: string
 }
 
 async function geocoder(adresse: string, apiKey: string): Promise<{ lat: number; lng: number } | null> {
@@ -25,19 +26,14 @@ async function geocoder(adresse: string, apiKey: string): Promise<{ lat: number;
 }
 
 async function getCommandesSemaine(): Promise<Commande[]> {
-  try {
-    const raw = await readFile(path.join(process.cwd(), 'data', 'commandes.json'), 'utf-8')
-    const toutes: Commande[] = JSON.parse(raw)
-    // Commandes de la semaine à venir (7 prochains jours) + aujourd'hui
-    const maintenant = new Date()
-    const dans7jours = new Date(maintenant.getTime() + 7 * 24 * 60 * 60 * 1000)
-    return toutes.filter(c => {
-      const d = new Date(c.createdAt)
-      return d >= maintenant || c.statut !== 'livree'
-    }).slice(0, 50) // max 50 marqueurs
-  } catch {
-    return []
-  }
+  const supabase = createServiceClient()
+  const { data } = await supabase
+    .from('orders')
+    .select('id, prenom, nom, adresse, total, statut, created_at')
+    .neq('statut', 'livree')
+    .order('created_at', { ascending: false })
+    .limit(50)
+  return data ?? []
 }
 
 export default async function PageAdminCarte() {
@@ -120,7 +116,7 @@ export default async function PageAdminCarte() {
             {commandes.map(c => (
               <div key={c.id} className="flex items-center gap-3 text-sm py-1.5" style={{ borderBottom: '1px solid var(--couleur-bordure)' }}>
                 <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: c.statut === 'en_attente' ? '#D27D56' : c.statut === 'confirmee' ? '#4A5D4E' : '#93A27D' }} />
-                <span className="font-medium shrink-0" style={{ color: 'var(--vert-sauge-fonce)' }}>{c.prenom} {c.nom}</span>
+                <span className="font-medium shrink-0" style={{ color: 'var(--vert-sauge-fonce)' }}>{c.prenom} {c.nom ?? ''}</span>
                 <span className="flex-1 truncate" style={{ color: 'var(--couleur-texte-doux)' }}>{c.adresse}</span>
                 <span className="font-semibold shrink-0" style={{ color: 'var(--vert-sauge-fonce)' }}>R$ {c.total.toFixed(2)}</span>
               </div>

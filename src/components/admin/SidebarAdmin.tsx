@@ -24,7 +24,7 @@ export default function SidebarAdmin() {
       <div className="flex flex-col items-center mb-8 px-2">
         <Image src="/logo-submark.png" alt="FM" width={56} height={56} className="object-contain brightness-0 invert opacity-90 mb-3" />
         <p className="text-white font-bold text-base text-center leading-tight" style={{ fontFamily: 'var(--font-playfair, Georgia)' }}>
-          Ferme de Marie à Rio
+          La Ferme de Marie à Rio
         </p>
         <p className="text-white/50 text-xs mt-0.5 tracking-widest uppercase">Administration</p>
       </div>

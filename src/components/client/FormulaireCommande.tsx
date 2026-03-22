@@ -410,7 +410,8 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
 
         <button
           type="submit"
-          className="w-full py-3.5 rounded-full text-white font-semibold text-base transition-all hover:opacity-90 flex items-center justify-center gap-3"
+          disabled={totalPrix < MONTANT_MINIMUM}
+          className="w-full py-3.5 rounded-full text-white font-semibold text-base transition-all hover:opacity-90 flex items-center justify-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed"
           style={{ backgroundColor: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-dm-sans)' }}
         >
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
