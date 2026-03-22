@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
+import { createBrowserClient } from '@supabase/ssr'
 
 export default function PageConnexion() {
   const params = useParams()
@@ -15,22 +16,24 @@ export default function PageConnexion() {
   const [erreur, setErreur]     = useState('')
   const [loading, setLoading]   = useState(false)
 
+  // Login directement côté client pour que AuthProvider détecte la session
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setErreur('')
     setLoading(true)
 
-    const fd = new FormData()
-    fd.append('email', email)
-    fd.append('password', password)
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    })
 
-    const res = await fetch('/api/auth/client/login', { method: 'POST', body: fd })
-    const json = await res.json() as { ok: boolean; error?: string }
-
-    if (!json.ok) {
-      setErreur(pt
-        ? 'Email ou senha incorretos.'
-        : 'Email ou mot de passe incorrect.')
+    if (error) {
+      setErreur(pt ? 'Email ou senha incorretos.' : 'Email ou mot de passe incorrect.')
       setLoading(false)
       return
     }

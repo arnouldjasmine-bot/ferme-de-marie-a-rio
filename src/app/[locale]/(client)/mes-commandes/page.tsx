@@ -36,7 +36,7 @@ export default function PageMesCommandes() {
   const params = useParams()
   const locale = (params?.locale as string) ?? 'fr'
   const pt = locale === 'pt-BR'
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
 
   const [email, setEmail]       = useState('')
   const [commandes, setCommandes] = useState<Commande[] | null>(null)
@@ -88,8 +88,13 @@ export default function PageMesCommandes() {
         {pt ? 'Meus pedidos' : 'Mes commandes'}
       </h1>
 
-      {/* Formulaire email (non connecté) */}
-      {!user && (
+      {/* Pendant le chargement de l'auth → spinner uniquement */}
+      {loading && (
+        <div className="py-16 text-center" style={{ color: 'var(--couleur-texte-doux)' }}>…</div>
+      )}
+
+      {/* Non connecté (auth chargée) → formulaire email */}
+      {!loading && !user && (
         <>
           <p className="text-sm mb-6" style={{ color: 'var(--couleur-texte-doux)' }}>
             {pt ? 'Informe seu e-mail para ver seus pedidos.' : 'Entrez votre email pour retrouver vos commandes.'}
