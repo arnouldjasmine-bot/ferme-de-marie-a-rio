@@ -196,7 +196,7 @@ function CarteCommande({ c, retard, archivee }: { c: Commande; retard: boolean; 
         {c.comprovante_url && <ComprovanteViewer url={c.comprovante_url} />}
         <div className="flex flex-wrap items-center gap-2">
           <BoutonsStatut id={c.id} statut={c.statut} />
-<BoutonLienPaiement id={c.id} telephone={c.telephone} />
+<BoutonLienPaiement id={c.id} telephone={c.telephone} locale={c.locale} />
         </div>
       </div>
     </div>

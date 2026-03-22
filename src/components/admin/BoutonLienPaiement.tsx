@@ -2,12 +2,58 @@
 
 import { useState } from 'react'
 
-function formatTelWhatsApp(tel: string): string {
-  // Supprimer tout sauf les chiffres (le + du début aussi)
-  return tel.replace(/\D/g, '')
+/**
+ * Normalise un numéro de téléphone pour l'API wa.me.
+ * wa.me attend le numéro complet sans + ni espaces : ex. 5521999999999
+ * On auto-ajoute l'indicatif pays si le client a oublié de le saisir.
+ */
+function formatTelWhatsApp(tel: string, locale?: string): string {
+  // Garder uniquement les chiffres
+  let digits = tel.replace(/\D/g, '')
+
+  if (locale === 'pt-BR') {
+    // Brésil : indicatif 55, DDD 2 chiffres obligatoire
+    // ex: "21 98166-8526" → "5521981668526"
+    if (!digits.startsWith('55')) {
+      // Si le numéro commence par 0 (format local brésilien), on retire le 0
+      if (digits.startsWith('0')) digits = digits.slice(1)
+      digits = '55' + digits
+    }
+  } else if (locale === 'fr') {
+    // France : indicatif 33
+    // ex: "0612345678" → "33612345678"
+    if (digits.startsWith('0')) {
+      digits = '33' + digits.slice(1)
+    } else if (!digits.startsWith('33')) {
+      digits = '33' + digits
+    }
+  }
+  // Sinon : utilise le numéro tel quel (le client a saisi l'indicatif complet)
+
+  return digits
 }
 
-export default function BoutonLienPaiement({ id, telephone }: { id: string; telephone?: string }) {
+function getMessageWhatsApp(lien: string, locale?: string): string {
+  if (locale === 'fr') {
+    return encodeURIComponent(
+      `Bonjour ! 🌿 Voici le lien pour régler votre commande La Ferme de Marie :\n\n${lien}\n\nMerci !`
+    )
+  }
+  // pt-BR par défaut (clients brésiliens majoritaires)
+  return encodeURIComponent(
+    `Olá! 🌿 Segue o link para pagamento do seu pedido na Ferme de Marie:\n\n${lien}\n\nObrigada!`
+  )
+}
+
+export default function BoutonLienPaiement({
+  id,
+  telephone,
+  locale,
+}: {
+  id: string
+  telephone?: string
+  locale?: string
+}) {
   const [copie, setCopie] = useState(false)
 
   function getLien() {
@@ -22,10 +68,8 @@ export default function BoutonLienPaiement({ id, telephone }: { id: string; tele
 
   function ouvrirWhatsApp() {
     const lien = getLien()
-    const message = encodeURIComponent(
-      `Olá! 🌿 Segue o link para pagamento do seu pedido na Ferme de Marie:\n\n${lien}\n\nObrigada!`
-    )
-    const numero = telephone ? formatTelWhatsApp(telephone) : ''
+    const message = getMessageWhatsApp(lien, locale)
+    const numero = telephone ? formatTelWhatsApp(telephone, locale) : ''
     const url = numero
       ? `https://wa.me/${numero}?text=${message}`
       : `https://wa.me/?text=${message}`
