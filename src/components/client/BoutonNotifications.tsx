@@ -37,6 +37,15 @@ export default function BoutonNotifications({ locale }: Props) {
 
   if (!user) return null
 
+  // En développement local, le SW est désactivé — on ne peut pas tester les push
+  if (process.env.NODE_ENV === 'development') {
+    return (
+      <p className="text-xs px-1" style={{ color: 'var(--couleur-texte-doux)' }}>
+        🛠️ Notifications désactivées en développement local. Tester sur le site de production (Chrome).
+      </p>
+    )
+  }
+
   // Navigateur ne supporte pas les push (ex: iOS Safari sans PWA installé)
   if (!supporte) {
     return (
