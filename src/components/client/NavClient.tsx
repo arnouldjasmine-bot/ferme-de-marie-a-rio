@@ -29,7 +29,7 @@ export default function NavClient() {
         boxShadow: 'var(--ombre-nav)'
       }}
     >
-      <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between gap-4">
+      <div className="max-w-6xl mx-auto px-4 py-1 flex items-center justify-between gap-4">
 
         {/* Logo principal */}
         <Link href={`/${locale}`} className="shrink-0">
@@ -38,7 +38,7 @@ export default function NavClient() {
             alt="Ferme de Marie à Rio"
             width={160}
             height={105}
-            className="object-contain w-24 sm:w-36 md:w-40"
+            className="object-contain w-20 sm:w-32 md:w-36"
             priority
           />
         </Link>

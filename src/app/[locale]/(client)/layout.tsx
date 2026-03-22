@@ -7,19 +7,19 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <main className="flex-1">
         {children}
       </main>
-      <footer className="pt-10 pb-6" style={{ backgroundColor: 'var(--vert-sauge-fonce)', color: '#fff' }}>
-        <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-center md:text-left">
-            <p className="font-bold text-lg" style={{ fontFamily: 'var(--font-playfair)' }}>La Ferme de Marie à Rio</p>
-            <p className="text-sm opacity-60 mt-1">Rio de Janeiro, Brésil</p>
+      <footer className="py-4" style={{ backgroundColor: 'var(--vert-sauge-fonce)', color: '#fff' }}>
+        <div className="max-w-5xl mx-auto px-4 flex flex-row items-center justify-between gap-2">
+          <div>
+            <p className="font-bold text-sm" style={{ fontFamily: 'var(--font-playfair)' }}>La Ferme de Marie à Rio</p>
+            <p className="text-xs opacity-50 mt-0.5">Rio de Janeiro, Brésil</p>
           </div>
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-end gap-1">
             <a href="mes-commandes" className="text-xs opacity-60 hover:opacity-90 transition-opacity underline">
               Suivre ma commande
             </a>
-            <p className="text-xs opacity-40">© {new Date().getFullYear()} La Ferme de Marie à Rio</p>
+            <p className="text-xs opacity-30">© {new Date().getFullYear()} La Ferme de Marie</p>
           </div>
-          <a href="/login" className="text-xs opacity-25 hover:opacity-60 transition-opacity">
+          <a href="/login" className="text-xs opacity-20 hover:opacity-50 transition-opacity hidden md:block">
             Espace admin
           </a>
         </div>
