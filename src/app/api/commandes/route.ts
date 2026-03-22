@@ -72,7 +72,8 @@ export async function POST(request: NextRequest) {
         ).join('')
 
         await resend.emails.send({
-          from: 'Ferme de Marie à Rio <commandes@lafermedemarie.com.br>',
+          from: 'Ferme de Marie à Rio <onboarding@resend.dev>',
+          replyTo: 'arnould.jasmine@gmail.com',
           to: email,
           subject: `✅ Commande confirmée — Ferme de Marie à Rio`,
           html: `
