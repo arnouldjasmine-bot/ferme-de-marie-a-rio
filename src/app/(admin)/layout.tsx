@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: Props) {
       <body>
         <div className="min-h-screen flex">
           <SidebarAdmin />
-          <main className="flex-1 p-6 md:p-8" style={{ backgroundColor: 'var(--admin-fond)' }}>
+          <main className="flex-1 p-4 md:p-8 pt-16 md:pt-8 overflow-x-hidden" style={{ backgroundColor: 'var(--admin-fond)' }}>
             {children}
           </main>
         </div>

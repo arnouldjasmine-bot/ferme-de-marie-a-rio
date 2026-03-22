@@ -1,34 +1,101 @@
-export default function PageDashboard() {
+import { createServiceClient } from '@/lib/supabase/service'
+
+export const dynamic = 'force-dynamic'
+
+export default async function PageDashboard() {
+  const supabase = createServiceClient()
+
+  const aujourd = new Date()
+  aujourd.setHours(0, 0, 0, 0)
+  const debutSemaine = new Date(aujourd)
+  debutSemaine.setDate(aujourd.getDate() - aujourd.getDay())
+
+  const [
+    { count: commandesAujourdhui },
+    { data: commandesSemaine },
+    { count: produitsActifs },
+    { count: stockFaible },
+    { data: dernieresCommandes },
+  ] = await Promise.all([
+    supabase.from('orders').select('*', { count: 'exact', head: true }).gte('created_at', aujourd.toISOString()),
+    supabase.from('orders').select('total').gte('created_at', debutSemaine.toISOString()).neq('statut', 'annulee'),
+    supabase.from('products').select('*', { count: 'exact', head: true }).eq('actif', true),
+    supabase.from('products').select('*', { count: 'exact', head: true }).eq('actif', true).lte('stock', 3).gt('stock', 0),
+    supabase.from('orders').select('id, prenom, nom, total, statut, created_at').order('created_at', { ascending: false }).limit(5),
+  ])
+
+  const caSemaine = (commandesSemaine ?? []).reduce((s, c) => s + (c.total ?? 0), 0)
+
+  const STATUT_COLORS: Record<string, string> = {
+    en_attente: '#D27D56',
+    confirmee: '#4A5D4E',
+    livree: '#93A27D',
+  }
+  const STATUT_LABELS: Record<string, string> = {
+    en_attente: 'En attente',
+    confirmee: 'Confirmée',
+    livree: 'Livrée',
+  }
+
+  const stats = [
+    { label: "Commandes aujourd'hui", valeur: String(commandesAujourdhui ?? 0), icone: '📦' },
+    { label: 'CA cette semaine', valeur: `R$ ${caSemaine.toFixed(2)}`, icone: '💰' },
+    { label: 'Produits actifs', valeur: String(produitsActifs ?? 0), icone: '🧺' },
+    { label: 'Stock faible', valeur: String(stockFaible ?? 0), icone: '⚠️' },
+  ]
+
   return (
     <div>
-      <h1
-        className="text-2xl font-bold mb-6"
-        style={{ color: 'var(--couleur-primaire-fonce)', fontFamily: 'var(--police-titre)' }}
-      >
+      <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--couleur-primaire-fonce)', fontFamily: 'var(--police-titre)' }}>
         Tableau de bord
       </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Commandes aujourd\'hui', valeur: '—' },
-          { label: 'CA cette semaine', valeur: '—' },
-          { label: 'Produits actifs', valeur: '—' },
-          { label: 'Stock faible', valeur: '—' }
-        ].map(({ label, valeur }) => (
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8">
+        {stats.map(({ label, valeur, icone }) => (
           <div
             key={label}
-            className="rounded-xl p-5"
-            style={{
-              backgroundColor: 'var(--couleur-fond-carte)',
-              boxShadow: 'var(--ombre-carte)',
-              borderRadius: 'var(--rayon-bordure-grand)'
-            }}
+            className="rounded-xl p-4 md:p-5"
+            style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)', borderRadius: 'var(--rayon-bordure-grand)' }}
           >
-            <p className="text-sm mb-1" style={{ color: 'var(--couleur-texte-doux)' }}>{label}</p>
-            <p className="text-2xl font-bold" style={{ color: 'var(--couleur-primaire-fonce)' }}>{valeur}</p>
+            <p className="text-xl mb-1">{icone}</p>
+            <p className="text-xs md:text-sm mb-1" style={{ color: 'var(--couleur-texte-doux)' }}>{label}</p>
+            <p className="text-xl md:text-2xl font-bold" style={{ color: 'var(--couleur-primaire-fonce)' }}>{valeur}</p>
           </div>
         ))}
       </div>
+
+      {/* Dernières commandes */}
+      {(dernieresCommandes ?? []).length > 0 && (
+        <div className="rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
+          <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--couleur-bordure)' }}>
+            <p className="font-semibold text-sm" style={{ color: 'var(--couleur-primaire-fonce)', fontFamily: 'var(--police-titre)' }}>
+              Dernières commandes
+            </p>
+          </div>
+          {(dernieresCommandes ?? []).map((c, i) => (
+            <div
+              key={c.id}
+              className="flex items-center justify-between px-5 py-3 text-sm"
+              style={{ borderBottom: i < (dernieresCommandes?.length ?? 0) - 1 ? '1px solid var(--couleur-bordure)' : 'none' }}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: STATUT_COLORS[c.statut] ?? '#ccc' }} />
+                <span className="font-medium truncate" style={{ color: 'var(--couleur-texte)' }}>{c.prenom} {c.nom}</span>
+                <span className="hidden sm:inline text-xs px-2 py-0.5 rounded-full text-white shrink-0" style={{ backgroundColor: STATUT_COLORS[c.statut] ?? '#ccc' }}>
+                  {STATUT_LABELS[c.statut] ?? c.statut}
+                </span>
+              </div>
+              <span className="font-bold shrink-0" style={{ color: 'var(--couleur-primaire-fonce)' }}>R$ {c.total.toFixed(2)}</span>
+            </div>
+          ))}
+          <div className="px-5 py-3 text-center">
+            <a href="/commandes" className="text-xs font-medium underline" style={{ color: 'var(--couleur-texte-doux)' }}>
+              Voir toutes les commandes →
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
