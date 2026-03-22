@@ -19,7 +19,7 @@ function LoginForm() {
       const data = await res.json()
       if (data.ok) {
         const secure = window.location.protocol === 'https:' ? '; Secure' : ''
-        document.cookie = `dev-admin-session=authenticated; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`
+        document.cookie = `dev-admin-session=authenticated; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax${secure}`
         window.location.href = '/dashboard'
       } else {
         setErreur('Email ou mot de passe incorrect.')

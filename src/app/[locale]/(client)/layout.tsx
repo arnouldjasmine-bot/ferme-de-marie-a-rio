@@ -13,11 +13,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <p className="font-bold text-lg" style={{ fontFamily: 'var(--font-playfair)' }}>La Ferme de Marie à Rio</p>
             <p className="text-sm opacity-60 mt-1">Rio de Janeiro, Brésil</p>
           </div>
-          <p className="text-xs opacity-40">© {new Date().getFullYear()} La Ferme de Marie à Rio</p>
-          <a
-            href="/login"
-            className="text-xs opacity-25 hover:opacity-60 transition-opacity"
-          >
+          <div className="flex flex-col items-center gap-2">
+            <a href="mes-commandes" className="text-xs opacity-60 hover:opacity-90 transition-opacity underline">
+              Suivre ma commande
+            </a>
+            <p className="text-xs opacity-40">© {new Date().getFullYear()} La Ferme de Marie à Rio</p>
+          </div>
+          <a href="/login" className="text-xs opacity-25 hover:opacity-60 transition-opacity">
             Espace admin
           </a>
         </div>
