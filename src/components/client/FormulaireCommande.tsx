@@ -89,6 +89,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
       data.append('adresse', form.adresse)
       data.append('total', totalPrix.toString())
       data.append('articles', JSON.stringify(articles.map(a => ({
+        id: a.produit.id,
         nom: a.produit.nom,
         quantite: a.quantite,
         prix: a.produit.prix,

@@ -124,6 +124,15 @@ export async function POST(request: NextRequest) {
 
     if (orderError) throw new Error(orderError.message)
 
+    // Décrémenter le stock de chaque produit
+    await Promise.all(
+      articles
+        .filter((a: { id?: string; quantite: number }) => a.id)
+        .map(async (a: { id: string; quantite: number }) => {
+          await supabase.rpc('decrementer_stock', { produit_id: a.id, quantite: a.quantite })
+        })
+    )
+
     // Email de confirmation client
     if (email && process.env.RESEND_API_KEY) {
       try {
