@@ -25,8 +25,8 @@ function initVapid(): boolean {
   }
   webpush.setVapidDetails(
     'mailto:contato@lafermedemarieario.com.br',
-    pub.replace(/=+$/, ''),
-    priv.replace(/=+$/, ''),
+    pub.replace(/=/g, '').trim(),
+    priv.replace(/=/g, '').trim(),
   )
   vapidInitialized = true
   return true
