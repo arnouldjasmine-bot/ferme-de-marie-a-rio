@@ -11,6 +11,7 @@ type Etape = 'formulaire' | 'pix' | 'confirmation'
 // ⚠️ À remplacer par la vraie clé PIX de la ferme
 const PIX_CLE = 'lafermedemarie@gmail.com'
 const PIX_BENEFICIAIRE = 'Ferme de Marie à Rio'
+const MONTANT_MINIMUM = 30
 
 export default function FormulaireCommande({ locale }: { locale: string }) {
   const t = useTranslations('commande')
@@ -33,19 +34,34 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
       setForm(prev => ({ ...prev, [champ]: e.target.value }))
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const { prenom, nom, email, telephone, adresse } = form
+    // Lire directement du DOM pour capturer l'autofill iOS/Android
+    const fd = new FormData(e.currentTarget)
+    const prenom    = (fd.get('prenom')    as string ?? form.prenom).trim()
+    const nom       = (fd.get('nom')       as string ?? form.nom).trim()
+    const email     = (fd.get('email')     as string ?? form.email).trim()
+    const telephone = (fd.get('telephone') as string ?? form.telephone).trim()
+    const adresse   = form.adresse || (fd.get('adresse') as string ?? '').trim()
+
     if (!prenom || !nom || !email || !telephone || !adresse) {
       setErreur(tErr('champsRequis'))
       return
     }
-    if (!adresseValide) {
+    if (adresse.length < 5) {
       setErreur(locale === 'pt-BR'
-        ? 'Por favor, confirme seu endereço de entrega.'
-        : 'Veuillez confirmer votre adresse de livraison.')
+        ? 'Por favor, informe seu endereço completo.'
+        : 'Veuillez saisir votre adresse complète.')
       return
     }
+    if (totalPrix < MONTANT_MINIMUM) {
+      setErreur(locale === 'pt-BR'
+        ? `Pedido mínimo de R$ ${MONTANT_MINIMUM.toFixed(2)}.`
+        : `Commande minimum de R$ ${MONTANT_MINIMUM.toFixed(2)}.`)
+      return
+    }
+    // Mettre à jour le form state avec les valeurs lues du DOM
+    setForm({ prenom, nom, email, telephone, adresse })
     setEtape('pix')
   }
 
@@ -328,6 +344,8 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
     { id: 'telephone', label: t('telephone'), type: 'tel', autocomplete: 'tel' },
   ] as const
 
+  const montantManquant = MONTANT_MINIMUM - totalPrix
+
   return (
     <div className="flex flex-col gap-6">
       {/* Récap panier */}
@@ -345,6 +363,13 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
           <span style={{ color: 'var(--couleur-texte)' }}>{t('total')}</span>
           <span style={{ color: 'var(--vert-sauge-fonce)' }}>R$ {totalPrix.toFixed(2)}</span>
         </div>
+        {montantManquant > 0 && (
+          <p className="text-xs mt-2 text-center" style={{ color: 'var(--terracotta)' }}>
+            {locale === 'pt-BR'
+              ? `Adicione R$ ${montantManquant.toFixed(2)} para atingir o pedido mínimo de R$ ${MONTANT_MINIMUM}.`
+              : `Ajoutez R$ ${montantManquant.toFixed(2)} pour atteindre le minimum de commande (R$ ${MONTANT_MINIMUM}).`}
+          </p>
+        )}
       </div>
 
       {/* Formulaire coordonnées */}
@@ -359,6 +384,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
               <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>{label}</label>
               <input
                 type={type}
+                name={id}
                 autoComplete={autocomplete}
                 value={form[id]}
                 onChange={set(id)}
