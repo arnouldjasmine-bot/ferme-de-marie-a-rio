@@ -22,6 +22,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
   const [mode, setMode]             = useState<Mode>('livraison')
   const [chargement, setChargement] = useState(false)
   const [erreur, setErreur]         = useState('')
+  const [adresseValide, setAdresseValide] = useState(false)
   const [form, setForm] = useState({ prenom: '', nom: '', email: '', telephone: '', adresse: '' })
 
   const totalFinal = totalPrix + (mode === 'livraison' ? FRAIS_LIVRAISON : 0)
@@ -46,10 +47,10 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
       setErreur(tErr('champsRequis'))
       return
     }
-    if (mode === 'livraison' && adresse.length < 5) {
+    if (mode === 'livraison' && !adresseValide) {
       setErreur(pt
-        ? 'Por favor, informe seu endereço completo.'
-        : 'Veuillez saisir votre adresse complète.')
+        ? 'Por favor, selecione um endereço válido nas sugestões.'
+        : 'Veuillez sélectionner une adresse valide dans les suggestions.')
       return
     }
     if (mode === 'livraison' && totalPrix < MONTANT_MINIMUM) {
@@ -249,8 +250,9 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
             value={form.adresse}
             label={t('adresse')}
             locale={locale}
-            onChange={(adresse) => {
+            onChange={(adresse, valide) => {
               setForm(prev => ({ ...prev, adresse }))
+              setAdresseValide(valide)
             }}
           />
         )}
@@ -259,7 +261,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
 
         <button
           type="submit"
-          disabled={chargement || (mode === 'livraison' && totalPrix < MONTANT_MINIMUM)}
+          disabled={chargement || (mode === 'livraison' && totalPrix < MONTANT_MINIMUM) || (mode === 'livraison' && !adresseValide && form.adresse.length > 3)}
           className="w-full py-3.5 rounded-full text-white font-semibold text-base transition-all hover:opacity-90 flex items-center justify-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed"
           style={{ backgroundColor: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-dm-sans)' }}
         >

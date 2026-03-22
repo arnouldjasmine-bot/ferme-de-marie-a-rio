@@ -18,6 +18,8 @@ function emailHtml(opts: {
   total: number
   lignesArticles: string
   frais_livraison?: number
+  mode_livraison?: string
+  adresse?: string
 }) {
   const pt = opts.locale === 'pt-BR'
   const titre      = pt ? 'Obrigado pelo seu pedido !' : 'Merci pour votre commande !'
@@ -34,6 +36,15 @@ function emailHtml(opts: {
   const footer     = 'La Ferme de Marie à Rio · Rio de Janeiro'
   const fraisLigne = opts.frais_livraison
     ? `<tr><td style="padding:8px 12px;border-bottom:1px solid #e8e4d8;">${pt ? 'Taxa de entrega' : 'Frais de livraison'}</td><td style="padding:8px 12px;border-bottom:1px solid #e8e4d8;text-align:center;">—</td><td style="padding:8px 12px;border-bottom:1px solid #e8e4d8;text-align:right;">R$ ${opts.frais_livraison.toFixed(2)}</td></tr>`
+    : ''
+  const adresseLigne = opts.mode_livraison === 'retrait'
+    ? `<p style="margin:16px 0 0;font-size:14px;color:#4A5D4E;">
+        📍 ${pt ? 'Local de retirada' : 'Adresse de retrait'} : <strong>Rue Julio de Castilhos, 89 — Copacabana, Rio de Janeiro</strong>
+       </p>`
+    : opts.adresse
+    ? `<p style="margin:16px 0 0;font-size:14px;color:#4A5D4E;">
+        🛵 ${pt ? 'Endereço de entrega' : 'Adresse de livraison'} : <strong>${opts.adresse}</strong>
+       </p>`
     : ''
 
   return `<!DOCTYPE html>
@@ -67,7 +78,8 @@ function emailHtml(opts: {
           </tfoot>
         </table>
       </div>
-      <p style="margin:0;font-size:13px;color:#7a7a6a;line-height:1.6;">${pied}</p>
+      ${adresseLigne}
+      <p style="margin:16px 0 0;font-size:13px;color:#7a7a6a;line-height:1.6;">${pied}</p>
     </div>
     <div style="background:#f8f6f0;padding:20px 24px;text-align:center;border-top:1px solid #e8e4d8;">
       <p style="margin:0;font-size:12px;color:#9a9a8a;">${footer}</p>
@@ -136,7 +148,7 @@ export async function POST(request: NextRequest) {
           replyTo: 'arnould.jasmine@gmail.com',
           to: email,
           subject,
-          html: emailHtml({ locale, prenom, total, lignesArticles, frais_livraison: frais_livraison > 0 ? frais_livraison : undefined }),
+          html: emailHtml({ locale, prenom, total, lignesArticles, frais_livraison: frais_livraison > 0 ? frais_livraison : undefined, mode_livraison, adresse }),
         })
       } catch (emailErr) {
         console.error('Erreur envoi email:', emailErr)

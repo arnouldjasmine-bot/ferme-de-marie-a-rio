@@ -19,7 +19,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             </a>
             <p className="text-xs opacity-30">© {new Date().getFullYear()} La Ferme de Marie</p>
           </div>
-          <a href="/login" className="text-xs opacity-20 hover:opacity-50 transition-opacity hidden md:block">
+          <a href="/login" className="text-xs opacity-20 hover:opacity-50 transition-opacity">
             Espace admin
           </a>
         </div>
