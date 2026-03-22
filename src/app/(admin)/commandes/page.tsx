@@ -2,6 +2,7 @@ import ComprovanteViewer from '@/components/admin/ComprovanteViewer'
 import BoutonsStatut from '@/components/admin/BoutonsStatut'
 import BoutonLienPaiement from '@/components/admin/BoutonLienPaiement'
 import { createServiceClient } from '@/lib/supabase/service'
+import Link from 'next/link'
 
 type Article = { nom: string; quantite: number; prix: number }
 type Commande = {
@@ -60,8 +61,8 @@ export default async function PageCommandes() {
       <div className="flex flex-col gap-4">
         {commandes.map(c => (
           <div key={c.id} className="rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
-            {/* En-tête */}
-            <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: '1px solid var(--couleur-bordure)', backgroundColor: 'var(--admin-fond)' }}>
+            {/* En-tête cliquable */}
+            <Link href={`/commandes/${c.id}`} className="flex items-center justify-between px-5 py-3 transition-opacity hover:opacity-80" style={{ borderBottom: '1px solid var(--couleur-bordure)', backgroundColor: 'var(--admin-fond)' }}>
               <div className="flex items-center gap-3">
                 <span className="font-bold text-sm" style={{ color: 'var(--couleur-primaire-fonce)' }}>
                   {c.prenom} {c.nom}
@@ -73,10 +74,10 @@ export default async function PageCommandes() {
               <div className="text-right">
                 <p className="font-bold text-sm" style={{ color: 'var(--couleur-primaire-fonce)' }}>R$ {c.total.toFixed(2)}</p>
                 <p className="text-xs" style={{ color: 'var(--couleur-texte-doux)' }}>
-                  {new Date(c.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  {new Date(c.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })} →
                 </p>
               </div>
-            </div>
+            </Link>
 
             {/* Détails */}
             <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">

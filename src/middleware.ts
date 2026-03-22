@@ -28,9 +28,10 @@ function isAdminPath(pathname: string): boolean {
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Passer les routes API et fichiers statiques
+  // Passer les routes API, paiement public et fichiers statiques
   if (
     pathname.startsWith('/api/') ||
+    pathname.startsWith('/payer/') ||
     pathname.startsWith('/_next/') ||
     pathname.includes('.')
   ) {

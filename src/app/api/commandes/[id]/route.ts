@@ -61,13 +61,24 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
-    const { statut } = await request.json()
+    const body = await request.json()
+    const supabase = createServiceClient()
+
+    // Mise à jour articles + total
+    if (body.articles !== undefined) {
+      const { error } = await supabase
+        .from('orders')
+        .update({ articles: body.articles, total: body.total })
+        .eq('id', id)
+      if (error) throw new Error(error.message)
+      return NextResponse.json({ ok: true })
+    }
+
+    const { statut } = body
 
     if (!['en_attente', 'confirmee', 'livree'].includes(statut)) {
       return NextResponse.json({ ok: false, error: 'Statut invalide' }, { status: 400 })
     }
-
-    const supabase = createServiceClient()
 
     const { data: commande, error: readError } = await supabase
       .from('orders')

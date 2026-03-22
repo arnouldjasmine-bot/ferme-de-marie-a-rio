@@ -93,6 +93,11 @@ export default function PanierClient({ locale }: { locale: string }) {
             R$ {totalPrix.toFixed(2)}
           </span>
         </div>
+        <p className="text-xs text-center mb-3" style={{ color: 'var(--couleur-texte-doux)' }}>
+          {locale === 'pt-BR'
+            ? 'Mínimo de R$ 30 para entrega a domicílio'
+            : 'Minimum de R$ 30 pour la livraison à domicile'}
+        </p>
         <Link
           href={`/${locale}/commande`}
           className="block w-full text-center py-3 rounded-lg text-white font-semibold transition-opacity hover:opacity-90"
