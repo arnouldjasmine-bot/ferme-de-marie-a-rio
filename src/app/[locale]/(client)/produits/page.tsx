@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 import CatalogueProduits from '@/components/client/CatalogueProduits'
 import type { Produit } from '@/types'
+import { CATEGORIES } from '@/types'
 import { createServiceClient } from '@/lib/supabase/service'
 
 export const dynamic = 'force-dynamic'
@@ -12,13 +13,14 @@ export default async function PageProduits({ params }: Props) {
   const t = await getTranslations('produits')
 
   const supabase = createServiceClient()
-  const { data } = await supabase
-    .from('products')
-    .select('*')
-    .eq('actif', true)
-    .gt('stock', 0)
-    .order('created_at', { ascending: false })
+  const [{ data }, { data: categoriesData }] = await Promise.all([
+    supabase.from('products').select('*').eq('actif', true).gt('stock', 0).order('created_at', { ascending: false }),
+    supabase.from('categories').select('*').order('ordre'),
+  ])
   const produits: Produit[] = data ?? []
+  const categories = (categoriesData && categoriesData.length > 0)
+    ? categoriesData
+    : CATEGORIES.map((c, i) => ({ id: String(i), value: c.value, label_fr: c.labelFr, label_pt: c.labelPt, emoji: '' }))
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -42,7 +44,7 @@ export default async function PageProduits({ params }: Props) {
           {t('titre')}
         </h1>
       </div>
-      <CatalogueProduits produits={produits} locale={locale} />
+      <CatalogueProduits produits={produits} locale={locale} categories={categories} />
     </div>
     </div>
   )

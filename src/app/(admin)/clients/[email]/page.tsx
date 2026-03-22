@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import Link from 'next/link'
+import BoutonRetour from '@/components/admin/BoutonRetour'
 
 type Article = { nom: string; quantite: number; prix: number }
 type Commande = {
@@ -75,10 +76,10 @@ export default async function PageClient({ params }: { params: Promise<{ email: 
 
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Retour */}
-      <Link href="/clients" className="text-sm transition-opacity hover:opacity-70 mb-4 inline-block" style={{ color: 'var(--couleur-texte-doux)' }}>
-        ← Clients fidèles
-      </Link>
+      {/* Retour intelligent */}
+      <div className="mb-4">
+        <BoutonRetour label="← Retour" />
+      </div>
 
       {/* En-tête client */}
       <div className="rounded-xl p-5 mb-5" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>

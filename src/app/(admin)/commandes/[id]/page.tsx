@@ -5,6 +5,7 @@ import BoutonsStatut from '@/components/admin/BoutonsStatut'
 import BoutonLienPaiement from '@/components/admin/BoutonLienPaiement'
 import ComprovanteViewer from '@/components/admin/ComprovanteViewer'
 import Link from 'next/link'
+import BoutonRetour from '@/components/admin/BoutonRetour'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,14 +48,10 @@ export default async function PageDetailCommande({ params }: { params: Promise<{
 
   return (
     <div className="max-w-2xl">
-      {/* Retour */}
-      <Link
-        href="/commandes"
-        className="inline-flex items-center gap-1 text-sm mb-5 transition-opacity hover:opacity-70"
-        style={{ color: 'var(--couleur-texte-doux)' }}
-      >
-        ← Retour aux commandes
-      </Link>
+      {/* Retour intelligent */}
+      <div className="mb-5">
+        <BoutonRetour label="← Retour" />
+      </div>
 
       <div className="flex items-start justify-between mb-5 gap-3 flex-wrap">
         <div>

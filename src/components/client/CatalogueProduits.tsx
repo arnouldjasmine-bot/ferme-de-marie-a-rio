@@ -3,12 +3,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { CATEGORIES, type Produit, type Categorie } from '@/types'
+import { type Produit } from '@/types'
 import { usePanier } from '@/lib/panier-context'
 
-const EMOJIS: Record<string, string> = {
-  fruits: '🍍', legumes: '🥬', confiture: '🍓', produits_laitiers: '🥛'
-}
+type CategorieItem = { id: string; value: string; label_fr: string; label_pt: string; emoji: string }
 
 const UNITES_PT: Record<string, string> = {
   'pièce': 'unidade',
@@ -30,12 +28,12 @@ function tradUnit(unite: string, locale: string): string {
   return UNITES_PT[unite] ?? unite
 }
 
-type Props = { produits: Produit[]; locale: string }
+type Props = { produits: Produit[]; locale: string; categories: CategorieItem[] }
 
-export default function CatalogueProduits({ produits, locale }: Props) {
+export default function CatalogueProduits({ produits, locale, categories }: Props) {
   const t = useTranslations('produits')
   const { ajouterAuPanier, articles } = usePanier()
-  const [filtreCategorie, setFiltreCategorie] = useState<Categorie | 'toutes'>('toutes')
+  const [filtreCategorie, setFiltreCategorie] = useState<string>('toutes')
   const [ajoutes, setAjoutes] = useState<Set<string>>(new Set())
 
   const produitsFiltres = filtreCategorie === 'toutes'
@@ -48,10 +46,12 @@ export default function CatalogueProduits({ produits, locale }: Props) {
     setTimeout(() => setAjoutes(prev => { const s = new Set(prev); s.delete(produit.id); return s }), 1200)
   }
 
-  const labelCat = (cat: Categorie) =>
-    locale === 'pt-BR'
-      ? CATEGORIES.find(c => c.value === cat)?.labelPt ?? cat
-      : CATEGORIES.find(c => c.value === cat)?.labelFr ?? cat
+  const labelCat = (cat: string) => {
+    const found = categories.find(c => c.value === cat)
+    if (!found) return cat
+    return locale === 'pt-BR' ? found.label_pt : found.label_fr
+  }
+  const emojiCat = (cat: string) => categories.find(c => c.value === cat)?.emoji ?? '🌿'
 
   return (
     <div>
@@ -68,7 +68,7 @@ export default function CatalogueProduits({ produits, locale }: Props) {
         >
           {locale === 'pt-BR' ? 'Todos' : 'Tous'}
         </button>
-        {CATEGORIES.map(cat => (
+        {categories.map(cat => (
           <button
             key={cat.value}
             onClick={() => setFiltreCategorie(cat.value)}
@@ -79,7 +79,7 @@ export default function CatalogueProduits({ produits, locale }: Props) {
               boxShadow: 'var(--ombre-carte)'
             }}
           >
-            {EMOJIS[cat.value]} {locale === 'pt-BR' ? cat.labelPt : cat.labelFr}
+            {cat.emoji} {locale === 'pt-BR' ? cat.label_pt : cat.label_fr}
           </button>
         ))}
       </div>
@@ -101,7 +101,7 @@ export default function CatalogueProduits({ produits, locale }: Props) {
                 {produit.image_url
                   ? <img src={produit.image_url} alt={produit.nom} className="w-full h-full object-cover" />
                   : <div className="w-full h-full flex items-center justify-center text-4xl">
-                      {produit.categorie ? EMOJIS[produit.categorie] : '📦'}
+                      {produit.categorie ? emojiCat(produit.categorie) : '📦'}
                     </div>
                 }
                 {produit.stock <= 3 && produit.stock > 0 && (
@@ -115,7 +115,7 @@ export default function CatalogueProduits({ produits, locale }: Props) {
               <div className="p-3 flex flex-col flex-1 gap-2">
                 {produit.categorie && (
                   <span className="text-xs font-medium" style={{ color: 'var(--couleur-texte-doux)' }}>
-                    {labelCat(produit.categorie)}
+                    {emojiCat(produit.categorie)} {labelCat(produit.categorie)}
                   </span>
                 )}
                 <Link href={`/${locale}/produits/${produit.id}`} className="font-semibold text-sm leading-tight hover:underline" style={{ color: 'var(--couleur-texte)' }}>{produit.nom}</Link>

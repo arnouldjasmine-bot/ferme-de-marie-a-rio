@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import '../globals.css'
 import SidebarAdmin from '@/components/admin/SidebarAdmin'
+import BoutonRefreshMobile from '@/components/admin/BoutonRefreshMobile'
 
 export const metadata: Metadata = {
   title: 'Admin — Ferme de Marie à Rio',
@@ -19,6 +20,7 @@ export default function AdminLayout({ children }: Props) {
           <SidebarAdmin />
           <main className="flex-1 p-4 md:p-8 pt-16 md:pt-8 overflow-x-hidden" style={{ backgroundColor: 'var(--admin-fond)' }}>
             {children}
+            <BoutonRefreshMobile />
           </main>
         </div>
       </body>
