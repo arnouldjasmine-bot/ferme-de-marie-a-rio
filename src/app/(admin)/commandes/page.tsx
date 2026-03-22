@@ -111,17 +111,17 @@ export default async function PageCommandes() {
 
 function CarteCommande({ c, retard, archivee }: { c: Commande; retard: boolean; archivee: boolean }) {
   const bgCard = archivee
-    ? '#f0f4f0'
+    ? '#d4e8d4'
     : retard
-    ? '#fdf0ec'
+    ? '#f5c6b8'
     : 'var(--couleur-fond-carte)'
 
-  const borderCard = retard ? '1.5px solid #D27D56' : 'none'
+  const borderCard = retard ? '2px solid #C0522A' : archivee ? '2px solid #4A5D4E' : 'none'
 
   return (
     <div
       className="rounded-xl overflow-hidden"
-      style={{ backgroundColor: bgCard, boxShadow: archivee ? 'none' : 'var(--ombre-carte)', border: borderCard, opacity: archivee ? 0.75 : 1 }}
+      style={{ backgroundColor: bgCard, boxShadow: archivee || retard ? 'none' : 'var(--ombre-carte)', border: borderCard }}
     >
       {/* En-tête cliquable */}
       <Link

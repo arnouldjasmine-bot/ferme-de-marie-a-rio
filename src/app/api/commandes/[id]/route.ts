@@ -105,14 +105,9 @@ export async function PATCH(
 
     const ancienStatut = commande.statut
 
-    const updatePayload: Record<string, unknown> = { statut }
-    if (statut === 'livree' && ancienStatut !== 'livree') {
-      updatePayload.livree_at = new Date().toISOString()
-    }
-
     const { error: updateError } = await supabase
       .from('orders')
-      .update(updatePayload)
+      .update({ statut })
       .eq('id', id)
 
     if (updateError) throw new Error(updateError.message)

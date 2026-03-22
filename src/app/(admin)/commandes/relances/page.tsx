@@ -103,9 +103,9 @@ function CarteRelance({ c, retard }: { c: Commande; retard: boolean }) {
     <div
       className="rounded-xl p-4"
       style={{
-        backgroundColor: retard ? '#fdf0ec' : 'var(--couleur-fond-carte)',
+        backgroundColor: retard ? '#f5c6b8' : 'var(--couleur-fond-carte)',
         boxShadow: 'var(--ombre-carte)',
-        border: retard ? '1.5px solid #D27D56' : 'none',
+        border: retard ? '2px solid #C0522A' : 'none',
       }}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
