@@ -1,15 +1,17 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface Props {
   avisId: string
   approuve: boolean
-  onAction: (id: string, action: 'approve' | 'reject' | 'delete') => void
+  onAction?: (id: string, action: 'approve' | 'reject' | 'delete') => void
 }
 
 export default function BoutonsAvis({ avisId, approuve, onAction }: Props) {
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   async function approuver() {
     setLoading(true)
@@ -18,7 +20,8 @@ export default function BoutonsAvis({ avisId, approuve, onAction }: Props) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ approuve: true }),
     })
-    onAction(avisId, 'approve')
+    onAction?.(avisId, 'approve')
+    router.refresh()
     setLoading(false)
   }
 
@@ -29,7 +32,8 @@ export default function BoutonsAvis({ avisId, approuve, onAction }: Props) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ approuve: false }),
     })
-    onAction(avisId, 'reject')
+    onAction?.(avisId, 'reject')
+    router.refresh()
     setLoading(false)
   }
 
@@ -37,7 +41,8 @@ export default function BoutonsAvis({ avisId, approuve, onAction }: Props) {
     if (!confirm('Supprimer cet avis ?')) return
     setLoading(true)
     await fetch(`/api/avis/${avisId}`, { method: 'DELETE' })
-    onAction(avisId, 'delete')
+    onAction?.(avisId, 'delete')
+    router.refresh()
     setLoading(false)
   }
 

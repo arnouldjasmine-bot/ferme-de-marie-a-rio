@@ -13,6 +13,7 @@ export default function BoutonNotifications({ locale }: Props) {
   const [actif, setActif]         = useState(false)
   const [loading, setLoading]     = useState(false)
   const [supporte, setSupporte]   = useState(false)
+  const [erreur, setErreur]       = useState('')
   const pt = locale === 'pt-BR'
 
   const supabase = createBrowserClient(
@@ -38,15 +39,27 @@ export default function BoutonNotifications({ locale }: Props) {
 
   async function abonner() {
     setLoading(true)
+    setErreur('')
     try {
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+      if (!vapidKey) {
+        setErreur(pt ? 'Notificações não configuradas.' : 'Notifications non configurées (clé VAPID manquante).')
+        setLoading(false)
+        return
+      }
+
       const reg = await navigator.serviceWorker.ready
       const permission = await Notification.requestPermission()
+      if (permission === 'denied') {
+        setErreur(pt ? 'Permissão recusada nas configurações do navegador.' : 'Permission refusée dans les paramètres du navigateur.')
+        setLoading(false)
+        return
+      }
       if (permission !== 'granted') {
         setLoading(false)
         return
       }
 
-      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidKey).buffer as ArrayBuffer,
@@ -55,7 +68,7 @@ export default function BoutonNotifications({ locale }: Props) {
       const json = sub.toJSON()
       const { data: { session } } = await supabase.auth.getSession()
 
-      await fetch('/api/push/subscribe', {
+      const res = await fetch('/api/push/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,9 +82,16 @@ export default function BoutonNotifications({ locale }: Props) {
         }),
       })
 
+      if (!res.ok) {
+        setErreur(pt ? 'Erro ao salvar assinatura.' : 'Erreur lors de l\'enregistrement.')
+        setLoading(false)
+        return
+      }
+
       setActif(true)
     } catch (err) {
       console.error('Erreur abonnement push:', err)
+      setErreur(pt ? 'Erro ao ativar notificações.' : 'Erreur lors de l\'activation des notifications.')
     }
     setLoading(false)
   }
@@ -90,23 +110,28 @@ export default function BoutonNotifications({ locale }: Props) {
   }
 
   return (
-    <button
-      onClick={actif ? desabonner : abonner}
-      disabled={loading}
-      className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all hover:opacity-80 disabled:opacity-50"
-      style={{
-        backgroundColor: actif ? '#eef3ee' : 'transparent',
-        color: 'var(--vert-sauge-fonce)',
-        borderColor: 'var(--couleur-bordure)',
-      }}
-    >
-      {actif ? '🔔' : '🔕'}
-      <span>
-        {actif
-          ? (pt ? 'Notificações ativas' : 'Notifications actives')
-          : (pt ? 'Ativar notificações' : 'Activer les notifications')}
-      </span>
-    </button>
+    <div className="flex flex-col gap-1">
+      <button
+        onClick={actif ? desabonner : abonner}
+        disabled={loading}
+        className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all hover:opacity-80 disabled:opacity-50"
+        style={{
+          backgroundColor: actif ? '#eef3ee' : 'transparent',
+          color: 'var(--vert-sauge-fonce)',
+          borderColor: 'var(--couleur-bordure)',
+        }}
+      >
+        {loading ? '…' : (actif ? '🔔' : '🔕')}
+        <span>
+          {actif
+            ? (pt ? 'Notificações ativas' : 'Notifications actives')
+            : (pt ? 'Ativar notificações' : 'Activer les notifications')}
+        </span>
+      </button>
+      {erreur && (
+        <p className="text-xs px-1" style={{ color: 'var(--couleur-erreur)' }}>{erreur}</p>
+      )}
+    </div>
   )
 }
 
