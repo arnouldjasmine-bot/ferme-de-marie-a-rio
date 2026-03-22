@@ -35,7 +35,18 @@ export default function BoutonNotifications({ locale }: Props) {
     })
   }, [supporte, user])
 
-  if (!user || !supporte) return null
+  if (!user) return null
+
+  // Navigateur ne supporte pas les push (ex: iOS Safari sans PWA installé)
+  if (!supporte) {
+    return (
+      <p className="text-xs px-1" style={{ color: 'var(--couleur-texte-doux)' }}>
+        {pt
+          ? '📵 Notificações não disponíveis neste navegador. Instale o app na tela inicial para recebê-las.'
+          : '📵 Notifications non disponibles sur ce navigateur. Installez l\'app sur l\'écran d\'accueil pour les recevoir.'}
+      </p>
+    )
+  }
 
   async function abonner() {
     setLoading(true)
