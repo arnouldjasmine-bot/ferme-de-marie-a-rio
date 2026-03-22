@@ -74,6 +74,19 @@ export async function PATCH(
       return NextResponse.json({ ok: true })
     }
 
+    // Mise à jour statut paiement
+    if (body.paiement_statut !== undefined) {
+      if (!['en_attente', 'payee'].includes(body.paiement_statut)) {
+        return NextResponse.json({ ok: false, error: 'Statut paiement invalide' }, { status: 400 })
+      }
+      const { error } = await supabase
+        .from('orders')
+        .update({ paiement_statut: body.paiement_statut })
+        .eq('id', id)
+      if (error) throw new Error(error.message)
+      return NextResponse.json({ ok: true })
+    }
+
     const { statut } = body
 
     if (!['en_attente', 'confirmee', 'livree'].includes(statut)) {
@@ -92,9 +105,14 @@ export async function PATCH(
 
     const ancienStatut = commande.statut
 
+    const updatePayload: Record<string, unknown> = { statut }
+    if (statut === 'livree' && ancienStatut !== 'livree') {
+      updatePayload.livree_at = new Date().toISOString()
+    }
+
     const { error: updateError } = await supabase
       .from('orders')
-      .update({ statut })
+      .update(updatePayload)
       .eq('id', id)
 
     if (updateError) throw new Error(updateError.message)

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import EditionCommande from '@/components/admin/EditionCommande'
 import BoutonsStatut from '@/components/admin/BoutonsStatut'
 import BoutonLienPaiement from '@/components/admin/BoutonLienPaiement'
+import BoutonPaiementStatut from '@/components/admin/BoutonPaiementStatut'
 import ComprovanteViewer from '@/components/admin/ComprovanteViewer'
 import Link from 'next/link'
 
@@ -22,6 +23,7 @@ type Commande = {
   comprovante_url: string | null
   mode_livraison: string
   frais_livraison: number
+  paiement_statut: 'en_attente' | 'payee'
   locale: string
   created_at: string
 }
@@ -90,10 +92,16 @@ export default async function PageDetailCommande({ params }: { params: Promise<{
         mode_livraison={c.mode_livraison}
       />
 
-      {/* Statut */}
+      {/* Statut livraison */}
       <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
-        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--couleur-texte-doux)' }}>Statut</p>
+        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--couleur-texte-doux)' }}>Statut livraison</p>
         <BoutonsStatut id={c.id} statut={c.statut} />
+      </div>
+
+      {/* Statut paiement */}
+      <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
+        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--couleur-texte-doux)' }}>Statut paiement</p>
+        <BoutonPaiementStatut id={c.id} paiement_statut={c.paiement_statut ?? 'en_attente'} />
       </div>
 
       {/* Actions */}

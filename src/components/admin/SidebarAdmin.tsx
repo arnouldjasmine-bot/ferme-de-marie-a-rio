@@ -6,11 +6,12 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
 const liens = [
-  { href: '/dashboard',    label: 'Tableau de bord', icone: '📊' },
-  { href: '/produits',     label: 'Produits',         icone: '🛒' },
-  { href: '/commandes',    label: 'Commandes',        icone: '📦' },
-  { href: '/carte',        label: 'Carte livraisons', icone: '🗺️' },
-  { href: '/statistiques', label: 'Statistiques',     icone: '📈' },
+  { href: '/dashboard',          label: 'Tableau de bord', icone: '📊' },
+  { href: '/produits',           label: 'Produits',         icone: '🛒' },
+  { href: '/commandes',          label: 'Commandes',        icone: '📦' },
+  { href: '/commandes/relances', label: 'Relances',         icone: '⚠️' },
+  { href: '/carte',              label: 'Carte livraisons', icone: '🗺️' },
+  { href: '/statistiques',       label: 'Statistiques',     icone: '📈' },
 ]
 
 export default function SidebarAdmin() {
