@@ -1,12 +1,34 @@
 import { getTranslations } from 'next-intl/server'
 import Image from 'next/image'
 import Link from 'next/link'
+import { createServiceClient } from '@/lib/supabase/service'
+import type { Produit } from '@/types'
 
 type Props = { params: Promise<{ locale: string }> }
+
+function getSaisonRio(mois: number) {
+  if (mois === 12 || mois <= 3) return { fr: 'Été',       pt: 'Verão',    emoji: '☀️', couleur: 'var(--terracotta)' }
+  if (mois <= 6)                return { fr: 'Automne',   pt: 'Outono',   emoji: '🍂', couleur: 'var(--vert-olive)' }
+  if (mois <= 9)                return { fr: 'Hiver',     pt: 'Inverno',  emoji: '🌿', couleur: 'var(--vert-sauge-fonce)' }
+  return                               { fr: 'Printemps', pt: 'Primavera',emoji: '🌸', couleur: 'var(--vieux-rose)' }
+}
+
+export const dynamic = 'force-dynamic'
 
 export default async function PageAccueil({ params }: Props) {
   const { locale } = await params
   const t = await getTranslations('accueil')
+
+  const supabase = createServiceClient()
+  const { data: produitsData } = await supabase
+    .from('products')
+    .select('id, nom, prix, unite, stock, image_url, categorie, actif')
+    .eq('actif', true)
+    .gt('stock', 0)
+    .order('created_at', { ascending: false })
+    .limit(6)
+  const produitsSaison: Produit[] = (produitsData ?? []) as Produit[]
+  const saison = getSaisonRio(new Date().getMonth() + 1)
 
   return (
     <div>
@@ -95,6 +117,64 @@ export default async function PageAccueil({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {/* ── Produits frais selon les saisons ── */}
+      {produitsSaison.length > 0 && (
+        <section className="px-4 py-10 md:py-16" style={{ backgroundColor: 'var(--creme-fonce)' }}>
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-8">
+              <span
+                className="inline-block px-4 py-1 rounded-full text-sm font-semibold text-white mb-3"
+                style={{ backgroundColor: saison.couleur }}
+              >
+                {saison.emoji} {locale === 'pt-BR' ? saison.pt : saison.fr}
+              </span>
+              <h2 className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
+                {locale === 'pt-BR' ? 'Produtos frescos da estação' : 'Produits frais de saison'}
+              </h2>
+              <p className="text-sm mt-2" style={{ color: 'var(--couleur-texte-doux)' }}>
+                {locale === 'pt-BR'
+                  ? 'Colhidos frescos, disponíveis agora na fazenda'
+                  : 'Cueillis frais, disponibles maintenant à la ferme'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+              {produitsSaison.map(p => (
+                <Link
+                  key={p.id}
+                  href={`/${locale}/produits/${p.id}`}
+                  className="rounded-xl overflow-hidden flex flex-col transition-transform hover:scale-[1.02]"
+                  style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}
+                >
+                  <div className="relative" style={{ height: 120, backgroundColor: 'var(--couleur-accent)' }}>
+                    {p.image_url
+                      ? <img src={p.image_url} alt={p.nom} className="w-full h-full object-cover" />
+                      : <div className="w-full h-full flex items-center justify-center text-3xl">🌿</div>
+                    }
+                  </div>
+                  <div className="p-3">
+                    <p className="font-semibold text-sm leading-tight" style={{ color: 'var(--couleur-texte)' }}>{p.nom}</p>
+                    <p className="text-sm font-bold mt-1" style={{ color: 'var(--couleur-primaire-fonce)' }}>
+                      R$ {p.prix.toFixed(2)} <span className="text-xs font-normal" style={{ color: 'var(--couleur-texte-doux)' }}>/ {p.unite}</span>
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <div className="text-center mt-8">
+              <Link
+                href={`/${locale}/produits`}
+                className="inline-block px-7 py-3 rounded-full font-semibold text-sm transition-all hover:scale-105"
+                style={{ backgroundColor: 'var(--vert-sauge-fonce)', color: '#fff' }}
+              >
+                {locale === 'pt-BR' ? 'Ver todos os produtos →' : 'Voir tous les produits →'}
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── CTA submark ── */}
       <section className="py-16 text-center" style={{ backgroundColor: 'var(--creme-fonce)' }}>

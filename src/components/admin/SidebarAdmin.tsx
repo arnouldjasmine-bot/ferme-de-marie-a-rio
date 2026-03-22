@@ -8,6 +8,7 @@ import { useState } from 'react'
 const liens = [
   { href: '/dashboard',          label: 'Tableau de bord', icone: '📊' },
   { href: '/produits',           label: 'Produits',         icone: '🛒' },
+  { href: '/categories',         label: 'Catégories',       icone: '🏷️' },
   { href: '/commandes',          label: 'Commandes',        icone: '📦' },
   { href: '/commandes/relances', label: 'Relances',         icone: '⚠️' },
   { href: '/clients',            label: 'Clients fidèles',  icone: '👥' },

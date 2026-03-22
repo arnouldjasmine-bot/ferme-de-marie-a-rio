@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { CATEGORIES, type Produit, type Categorie } from '@/types'
+
+type CategorieDB = { id: string; value: string; label_fr: string; label_pt: string; emoji: string }
 
 type Props = {
   produit?: Produit | null
@@ -15,8 +17,19 @@ export default function FormulaireProduit({ produit }: Props) {
   const [prix, setPrix] = useState(produit?.prix?.toString() ?? '')
   const [unite, setUnite] = useState(produit?.unite ?? '')
   const [stock, setStock] = useState(produit?.stock?.toString() ?? '')
-  const [categorie, setCategorie] = useState<Categorie | ''>(produit?.categorie ?? '')
+  const [categorie, setCategorie] = useState<string>(produit?.categorie ?? '')
+  const [categories, setCategories] = useState<CategorieDB[]>([])
   const [actif, setActif] = useState(produit?.actif ?? true)
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) setCategories(data)
+        else setCategories(CATEGORIES.map((c, i) => ({ id: String(i), value: c.value, label_fr: c.labelFr, label_pt: c.labelPt, emoji: '' })))
+      })
+      .catch(() => setCategories(CATEGORIES.map((c, i) => ({ id: String(i), value: c.value, label_fr: c.labelFr, label_pt: c.labelPt, emoji: '' }))))
+  }, [])
   const [imagePreview, setImagePreview] = useState<string | null>(produit?.image_url ?? null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [chargement, setChargement] = useState(false)
@@ -138,7 +151,7 @@ export default function FormulaireProduit({ produit }: Props) {
           <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>Catégorie</label>
           <select value={categorie} onChange={e => setCategorie(e.target.value as Categorie | '')} className="w-full border rounded-xl px-3 py-2.5 text-sm outline-none" style={{ borderColor: 'var(--couleur-bordure)' }}>
             <option value="">— Choisir —</option>
-            {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.labelFr}</option>)}
+            {categories.map(c => <option key={c.value} value={c.value}>{c.emoji} {c.label_fr}</option>)}
           </select>
         </div>
 

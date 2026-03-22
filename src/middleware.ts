@@ -14,6 +14,7 @@ const ADMIN_ROUTES = [
   '/statistiques',
   '/medrio',
   '/clients',
+  '/categories',
 ]
 
 function isAdminPath(pathname: string): boolean {
