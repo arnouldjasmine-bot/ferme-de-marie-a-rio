@@ -156,8 +156,9 @@ function CarteCommandeMedRio({ c, archivee }: { c: Commande; archivee: boolean }
               {payee ? '✓ Payée' : '⏳ Paiement en attente'}
             </span>
           </div>
-          <p className="text-xs" style={{ color: 'var(--couleur-texte-doux)' }}>
+          <p className="text-xs flex items-center gap-1.5" style={{ color: 'var(--couleur-texte-doux)' }}>
             {new Date(c.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+            {' · '}🇧🇷
           </p>
         </div>
         <p className="font-bold text-sm shrink-0" style={{ color: 'var(--couleur-primaire-fonce)' }}>

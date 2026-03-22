@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
         is_medrio: true,
         mode_livraison: 'livraison',
         frais_livraison: 0,
+        locale: 'pt-BR',
       })
       .select()
       .single()

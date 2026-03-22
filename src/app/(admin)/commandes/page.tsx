@@ -20,6 +20,7 @@ type Commande = {
   livree_at: string | null
   mode_livraison: string
   is_medrio: boolean
+  locale: string
   created_at: string
 }
 
@@ -157,10 +158,14 @@ function CarteCommande({ c, retard, archivee }: { c: Commande; retard: boolean; 
               </span>
             )}
           </div>
-          <p className="text-xs" style={{ color: 'var(--couleur-texte-doux)' }}>
+          <p className="text-xs flex items-center gap-1.5 flex-wrap" style={{ color: 'var(--couleur-texte-doux)' }}>
             {new Date(c.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
             {' · '}
             {c.mode_livraison === 'retrait' ? '🏡 Retrait' : '🛵 Livraison'}
+            {' · '}
+            <span title={c.locale === 'pt-BR' ? 'Client brésilien' : 'Client français'}>
+              {c.locale === 'pt-BR' ? '🇧🇷' : '🇫🇷'}
+            </span>
           </p>
         </div>
         <p className="font-bold text-sm shrink-0" style={{ color: 'var(--couleur-primaire-fonce)' }}>
