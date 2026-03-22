@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { CATEGORIES, type Produit, type Categorie } from '@/types'
 import { usePanier } from '@/lib/panier-context'
@@ -95,8 +96,8 @@ export default function CatalogueProduits({ produits, locale }: Props) {
               className="rounded-xl overflow-hidden flex flex-col"
               style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}
             >
-              {/* Image */}
-              <div className="relative" style={{ height: 140, backgroundColor: 'var(--couleur-accent)' }}>
+              {/* Image cliquable → fiche produit */}
+              <Link href={`/${locale}/produits/${produit.id}`} className="block relative" style={{ height: 140, backgroundColor: 'var(--couleur-accent)' }}>
                 {produit.image_url
                   ? <img src={produit.image_url} alt={produit.nom} className="w-full h-full object-cover" />
                   : <div className="w-full h-full flex items-center justify-center text-4xl">
@@ -108,7 +109,7 @@ export default function CatalogueProduits({ produits, locale }: Props) {
                     {locale === 'pt-BR' ? 'Últimas unidades' : 'Dernières unités'}
                   </span>
                 )}
-              </div>
+              </Link>
 
               {/* Contenu */}
               <div className="p-3 flex flex-col flex-1 gap-2">
@@ -117,7 +118,7 @@ export default function CatalogueProduits({ produits, locale }: Props) {
                     {labelCat(produit.categorie)}
                   </span>
                 )}
-                <p className="font-semibold text-sm leading-tight" style={{ color: 'var(--couleur-texte)' }}>{produit.nom}</p>
+                <Link href={`/${locale}/produits/${produit.id}`} className="font-semibold text-sm leading-tight hover:underline" style={{ color: 'var(--couleur-texte)' }}>{produit.nom}</Link>
                 <div className="flex items-baseline gap-1 mt-auto">
                   <span className="font-bold" style={{ color: 'var(--couleur-primaire-fonce)' }}>
                     R$ {produit.prix.toFixed(2)}
