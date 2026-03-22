@@ -202,7 +202,7 @@ export default function PageInscription() {
         <p className="text-center text-sm mt-6" style={{ color: 'var(--couleur-texte-doux)' }}>
           {pt ? 'Já tem conta? ' : 'Déjà un compte ? '}
           <Link
-            href={`/${localeEffective}/compte/connexion`}
+            href={`/${locale}/compte/connexion`}
             className="font-semibold underline"
             style={{ color: 'var(--vert-sauge)' }}
           >
