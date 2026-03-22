@@ -28,11 +28,10 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
   const { user, profile } = useAuth()
 
   // Indicatif pays par défaut selon la langue du site
-  const paysDefaut = PAYS.find(p => p.locale === locale) ?? PAYS[0]
+  const paysDefaut = locale === 'pt-BR' ? PAYS[0] : PAYS[1]
   const [paysSelectionne, setPaysSelectionne] = useState<Pays>(paysDefaut)
-  // La locale envoyée à l'API suit l'indicatif pays choisi
-  const localeCommande = paysSelectionne.locale
-  const pt = localeCommande === 'pt-BR'
+  // La locale de la commande = langue du site (URL), pas l'indicatif pays
+  const pt = locale === 'pt-BR'
 
   const [etape, setEtape]           = useState<Etape>('formulaire')
   const [mode, setMode]             = useState<Mode>('livraison')
@@ -124,7 +123,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
         quantite: a.quantite,
         prix: a.produit.prix,
       }))))
-      data.append('locale', localeCommande)
+      data.append('locale', locale)
       if (user?.id) {
         data.append('user_id', user.id)
       }
@@ -333,9 +332,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
               />
             </div>
             <p className="text-xs mt-1" style={{ color: 'var(--couleur-texte-doux)' }}>
-              {pt
-                ? `Selecionou ${paysSelectionne.flag} — seu pedido será em português`
-                : `Sélectionné ${paysSelectionne.flag} — votre commande sera en français`}
+              {pt ? 'Selecione o código do seu país' : "Sélectionnez l'indicatif de votre pays"}
             </p>
           </div>
         </div>

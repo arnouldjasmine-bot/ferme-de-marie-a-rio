@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { type Produit } from '@/types'
 import { usePanier } from '@/lib/panier-context'
+import { useAuth } from './AuthProvider'
+import BoutonFavori from './BoutonFavori'
 
 type CategorieItem = { id: string; value: string; label_fr: string; label_pt: string; emoji: string }
 
@@ -33,6 +35,7 @@ type Props = { produits: Produit[]; locale: string; categories: CategorieItem[] 
 export default function CatalogueProduits({ produits, locale, categories }: Props) {
   const t = useTranslations('produits')
   const { ajouterAuPanier, articles } = usePanier()
+  const { user } = useAuth()
   const [filtreCategorie, setFiltreCategorie] = useState<string>('toutes')
   const [ajoutes, setAjoutes] = useState<Set<string>>(new Set())
 
@@ -97,19 +100,27 @@ export default function CatalogueProduits({ produits, locale, categories }: Prop
               style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}
             >
               {/* Image cliquable → fiche produit */}
-              <Link href={`/${locale}/produits/${produit.id}`} className="block relative" style={{ height: 140, backgroundColor: 'var(--couleur-accent)' }}>
-                {produit.image_url
-                  ? <img src={produit.image_url} alt={produit.nom} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-4xl">
-                      {produit.categorie ? emojiCat(produit.categorie) : '📦'}
-                    </div>
-                }
+              <div className="relative" style={{ height: 140, backgroundColor: 'var(--couleur-accent)' }}>
+                <Link href={`/${locale}/produits/${produit.id}`} className="block w-full h-full">
+                  {produit.image_url
+                    ? <img src={produit.image_url} alt={produit.nom} className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center text-4xl">
+                        {produit.categorie ? emojiCat(produit.categorie) : '📦'}
+                      </div>
+                  }
+                </Link>
                 {produit.stock <= 3 && produit.stock > 0 && (
-                  <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-medium text-white" style={{ backgroundColor: 'var(--couleur-attention)' }}>
+                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-medium text-white" style={{ backgroundColor: 'var(--couleur-attention)' }}>
                     {locale === 'pt-BR' ? 'Últimas unidades' : 'Dernières unités'}
                   </span>
                 )}
-              </Link>
+                {/* Bouton favori — visible uniquement si connecté */}
+                {user && (
+                  <div className="absolute top-2 right-2">
+                    <BoutonFavori productId={produit.id} locale={locale} />
+                  </div>
+                )}
+              </div>
 
               {/* Contenu */}
               <div className="p-3 flex flex-col flex-1 gap-2">
