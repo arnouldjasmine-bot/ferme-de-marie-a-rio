@@ -12,11 +12,25 @@ type Mode  = 'retrait' | 'livraison'
 const FRAIS_LIVRAISON = 20
 const MONTANT_MINIMUM = 30   // s'applique uniquement en mode livraison
 
+const PAYS = [
+  { code: '+55', flag: '🇧🇷', label: 'BR', locale: 'pt-BR' },
+  { code: '+33', flag: '🇫🇷', label: 'FR', locale: 'fr' },
+  { code: '+351', flag: '🇵🇹', label: 'PT', locale: 'pt-BR' },
+  { code: '+1',   flag: '🇺🇸', label: 'US', locale: 'fr' },
+] as const
+type Pays = typeof PAYS[number]
+
 export default function FormulaireCommande({ locale }: { locale: string }) {
   const t    = useTranslations('commande')
   const tErr = useTranslations('erreurs')
   const { articles, totalPrix, viderPanier } = usePanier()
-  const pt = locale === 'pt-BR'
+
+  // Indicatif pays par défaut selon la langue du site
+  const paysDefaut = PAYS.find(p => p.locale === locale) ?? PAYS[0]
+  const [paysSelectionne, setPaysSelectionne] = useState<Pays>(paysDefaut)
+  // La locale envoyée à l'API suit l'indicatif pays choisi
+  const localeCommande = paysSelectionne.locale
+  const pt = localeCommande === 'pt-BR'
 
   const [etape, setEtape]           = useState<Etape>('formulaire')
   const [mode, setMode]             = useState<Mode>('livraison')
@@ -62,11 +76,15 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
 
     setChargement(true)
     try {
+      // Construire le numéro complet avec indicatif pays
+      const telDigits = telephone.replace(/\D/g, '')
+      const telephoneComplet = paysSelectionne.code + telDigits
+
       const data = new FormData()
       data.append('prenom', prenom)
       data.append('nom', nom)
       data.append('email', email)
-      data.append('telephone', telephone)
+      data.append('telephone', telephoneComplet)
       data.append('adresse', adresse)
       data.append('total', totalFinal.toString())
       data.append('mode_livraison', mode)
@@ -77,7 +95,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
         quantite: a.quantite,
         prix: a.produit.prix,
       }))))
-      data.append('locale', locale)
+      data.append('locale', localeCommande)
       await fetch('/api/commandes', { method: 'POST', body: data })
     } catch (err) {
       console.error(err)
@@ -131,11 +149,10 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
     )
   }
 
-  const champs = [
+  const champsBase = [
     { id: 'prenom', label: t('prenom'), type: 'text', autocomplete: 'given-name' },
     { id: 'nom', label: t('nom'), type: 'text', autocomplete: 'family-name' },
     { id: 'email', label: t('email'), type: 'email', autocomplete: 'email' },
-    { id: 'telephone', label: t('telephone'), type: 'tel', autocomplete: 'tel' },
   ] as const
 
   return (
@@ -228,8 +245,8 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {champs.map(({ id, label, type, autocomplete }) => (
-            <div key={id} className={id === 'email' || id === 'telephone' ? 'col-span-1' : ''}>
+          {champsBase.map(({ id, label, type, autocomplete }) => (
+            <div key={id}>
               <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>{label}</label>
               <input
                 type={type}
@@ -243,6 +260,52 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
               />
             </div>
           ))}
+
+          {/* Téléphone avec sélecteur d'indicatif pays */}
+          <div className="sm:col-span-2">
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>
+              {t('telephone')}
+            </label>
+            <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: 'var(--couleur-bordure)' }}>
+              {/* Sélecteur pays */}
+              <select
+                value={paysSelectionne.code}
+                onChange={e => {
+                  const p = PAYS.find(p => p.code === e.target.value)
+                  if (p) setPaysSelectionne(p)
+                }}
+                className="shrink-0 border-r px-2 py-2 text-sm bg-transparent outline-none focus:ring-2 cursor-pointer"
+                style={{
+                  borderColor: 'var(--couleur-bordure)',
+                  color: 'var(--couleur-texte)',
+                  '--tw-ring-color': 'var(--vert-sauge)',
+                } as React.CSSProperties}
+              >
+                {PAYS.map(p => (
+                  <option key={p.code} value={p.code}>
+                    {p.flag} {p.code}
+                  </option>
+                ))}
+              </select>
+              {/* Numéro local */}
+              <input
+                type="tel"
+                name="telephone"
+                autoComplete="tel-national"
+                placeholder={paysSelectionne.code === '+55' ? '21 99999-9999' : '6 12 34 56 78'}
+                value={form.telephone}
+                onChange={set('telephone')}
+                required
+                className="flex-1 px-3 py-2 text-sm outline-none focus:ring-2 bg-transparent"
+                style={{ '--tw-ring-color': 'var(--vert-sauge)' } as React.CSSProperties}
+              />
+            </div>
+            <p className="text-xs mt-1" style={{ color: 'var(--couleur-texte-doux)' }}>
+              {pt
+                ? `Selecionou ${paysSelectionne.flag} — seu pedido será em português`
+                : `Sélectionné ${paysSelectionne.flag} — votre commande sera en français`}
+            </p>
+          </div>
         </div>
 
         {mode === 'livraison' && (
