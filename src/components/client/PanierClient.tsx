@@ -11,7 +11,7 @@ export default function PanierClient({ locale }: { locale: string }) {
   if (articles.length === 0) {
     return (
       <div className="text-center py-20">
-        <div className="text-5xl mb-4">🧺</div>
+        <div className="text-5xl mb-4">🛒</div>
         <p className="text-lg mb-6" style={{ color: 'var(--couleur-texte-doux)' }}>{t('vide')}</p>
         <Link
           href={`/${locale}/produits`}

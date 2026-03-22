@@ -40,7 +40,7 @@ export default async function PageDashboard() {
   const stats = [
     { label: "Commandes aujourd'hui", valeur: String(commandesAujourdhui ?? 0), icone: '📦' },
     { label: 'CA cette semaine', valeur: `R$ ${caSemaine.toFixed(2)}`, icone: '💰' },
-    { label: 'Produits actifs', valeur: String(produitsActifs ?? 0), icone: '🧺' },
+    { label: 'Produits actifs', valeur: String(produitsActifs ?? 0), icone: '🛒' },
     { label: 'Stock faible', valeur: String(stockFaible ?? 0), icone: '⚠️' },
   ]
 
