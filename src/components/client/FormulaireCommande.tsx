@@ -94,6 +94,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
         prix: a.produit.prix,
       }))))
       data.append('comprovante', comprovante)
+      data.append('locale', locale)
       await fetch('/api/commandes', { method: 'POST', body: data })
     } catch (e) {
       console.error(e)
@@ -378,7 +379,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
           {t('coordonnees')}
         </h2>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {champs.map(({ id, label, type, autocomplete }) => (
             <div key={id} className={id === 'email' || id === 'telephone' ? 'col-span-1' : ''}>
               <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>{label}</label>

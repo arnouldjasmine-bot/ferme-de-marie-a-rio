@@ -38,7 +38,7 @@ export default function NavClient() {
             alt="Ferme de Marie à Rio"
             width={160}
             height={105}
-            className="object-contain"
+            className="object-contain w-24 sm:w-36 md:w-40"
             priority
           />
         </Link>
@@ -86,13 +86,13 @@ export default function NavClient() {
           {/* Bouton panier */}
           <Link
             href={`/${locale}/panier`}
-            className="relative flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-medium transition-opacity hover:opacity-90"
+            className="relative flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full text-white text-sm font-medium transition-opacity hover:opacity-90"
             style={{ backgroundColor: 'var(--vert-sauge)', fontFamily: 'var(--font-dm-sans)' }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
             </svg>
-            {t('panier')}
+            <span className="hidden sm:inline">{t('panier')}</span>
             {totalArticles > 0 && (
               <span
                 className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold text-white"

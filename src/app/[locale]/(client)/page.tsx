@@ -11,26 +11,26 @@ export default async function PageAccueil({ params }: Props) {
   return (
     <div>
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden" style={{ minHeight: '520px' }}>
+      <section className="relative overflow-hidden" style={{ minHeight: 'clamp(380px, 70vh, 520px)' }}>
         {/* Photo de fond */}
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/hero-ferme.jpg')" }} />
         {/* Dégradé warm overlay */}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(46,61,49,0.72) 0%, rgba(210,125,86,0.35) 100%)' }} />
 
-        <div className="relative z-10 flex flex-col items-center justify-center text-center px-6 py-24">
+        <div className="relative z-10 flex flex-col items-center justify-center text-center px-5 py-12 md:py-24">
           {/* Logo principal blanc */}
           <div className="mb-4 drop-shadow-lg">
-            <Image src="/logo.png" alt="Ferme de Marie à Rio" width={380} height={250} className="object-contain brightness-0 invert" priority />
+            <Image src="/logo.png" alt="Ferme de Marie à Rio" width={380} height={250} className="object-contain brightness-0 invert w-48 sm:w-72 md:w-96" priority />
           </div>
           <p
-            className="mb-10 max-w-md text-white/90"
-            style={{ fontFamily: 'var(--font-dancing)', fontSize: '1.6rem' }}
+            className="mb-8 max-w-xs sm:max-w-md text-white/90"
+            style={{ fontFamily: 'var(--font-dancing)', fontSize: 'clamp(1.2rem, 4vw, 1.6rem)' }}
           >
             {t('sousTitre')}
           </p>
           <Link
             href={`/${locale}/produits`}
-            className="px-8 py-3.5 rounded-full font-semibold text-base transition-all hover:scale-105 hover:shadow-lg"
+            className="px-7 py-3 rounded-full font-semibold text-base transition-all hover:scale-105 hover:shadow-lg"
             style={{ backgroundColor: 'var(--terracotta)', color: '#fff', fontFamily: 'var(--font-dm-sans)' }}
           >
             {t('voirProduits')}
@@ -53,7 +53,7 @@ export default async function PageAccueil({ params }: Props) {
       </section>
 
       {/* ── Valeurs ── */}
-      <section className="px-6 py-20 max-w-5xl mx-auto">
+      <section className="px-4 py-10 md:py-20 max-w-5xl mx-auto">
         <div className="text-center mb-14">
           <p className="text-sm uppercase tracking-widest mb-2 font-semibold" style={{ color: 'var(--terracotta)' }}>
             {locale === 'pt-BR' ? 'Por que escolher' : 'Pourquoi nous choisir'}
@@ -65,7 +65,7 @@ export default async function PageAccueil({ params }: Props) {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Produits frais */}
-          <div className="rounded-2xl p-8 text-center relative overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
+          <div className="rounded-2xl p-5 md:p-8 text-center relative overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
             <div className="w-full h-1 absolute top-0 left-0 right-0 rounded-t-2xl" style={{ backgroundColor: 'var(--vert-olive)' }} />
             <div className="flex items-center justify-center mb-5 mt-2">
               <Image src="/icone-frais.png" alt="Produits frais" width={88} height={88} className="object-contain" />
@@ -75,7 +75,7 @@ export default async function PageAccueil({ params }: Props) {
           </div>
 
           {/* Circuit court */}
-          <div className="rounded-2xl p-8 text-center relative overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
+          <div className="rounded-2xl p-5 md:p-8 text-center relative overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
             <div className="w-full h-1 absolute top-0 left-0 right-0 rounded-t-2xl" style={{ backgroundColor: 'var(--terracotta)' }} />
             <div className="flex items-center justify-center mb-5 mt-2">
               <Image src="/icone-circuit.png" alt="Circuit court" width={88} height={88} className="object-contain" />
@@ -85,7 +85,7 @@ export default async function PageAccueil({ params }: Props) {
           </div>
 
           {/* 100% naturel */}
-          <div className="rounded-2xl p-8 text-center relative overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
+          <div className="rounded-2xl p-5 md:p-8 text-center relative overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
             <div className="w-full h-1 absolute top-0 left-0 right-0 rounded-t-2xl" style={{ backgroundColor: 'var(--vieux-rose)' }} />
             <div className="flex items-center justify-center mb-5 mt-2">
               <Image src="/icone-naturel.png" alt="100% naturel" width={88} height={88} className="object-contain" />
