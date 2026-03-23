@@ -7,30 +7,12 @@ import { useState } from 'react'
  * wa.me attend le numéro complet sans + ni espaces : ex. 5521999999999
  * On auto-ajoute l'indicatif pays si le client a oublié de le saisir.
  */
-function formatTelWhatsApp(tel: string, locale?: string): string {
-  // Garder uniquement les chiffres
-  let digits = tel.replace(/\D/g, '')
-
-  if (locale === 'pt-BR') {
-    // Brésil : indicatif 55, DDD 2 chiffres obligatoire
-    // ex: "21 98166-8526" → "5521981668526"
-    if (!digits.startsWith('55')) {
-      // Si le numéro commence par 0 (format local brésilien), on retire le 0
-      if (digits.startsWith('0')) digits = digits.slice(1)
-      digits = '55' + digits
-    }
-  } else if (locale === 'fr') {
-    // France : indicatif 33
-    // ex: "0612345678" → "33612345678"
-    if (digits.startsWith('0')) {
-      digits = '33' + digits.slice(1)
-    } else if (!digits.startsWith('33')) {
-      digits = '33' + digits
-    }
-  }
-  // Sinon : utilise le numéro tel quel (le client a saisi l'indicatif complet)
-
-  return digits
+function formatTelWhatsApp(tel: string): string {
+  // Le numéro est stocké avec l'indicatif pays (ajouté au moment de la commande)
+  // wa.me attend juste les chiffres sans + ni espaces : ex. 5521999999999
+  const digits = tel.replace(/\D/g, '')
+  // Si le numéro commence par 0 (cas rare de saisie sans indicatif), on retire le 0
+  return digits.startsWith('0') ? digits.slice(1) : digits
 }
 
 function getMessageWhatsApp(lien: string, locale?: string): string {
@@ -69,7 +51,7 @@ export default function BoutonLienPaiement({
   function ouvrirWhatsApp() {
     const lien = getLien()
     const message = getMessageWhatsApp(lien, locale)
-    const numero = telephone ? formatTelWhatsApp(telephone, locale) : ''
+    const numero = telephone ? formatTelWhatsApp(telephone) : ''
     const url = numero
       ? `https://wa.me/${numero}?text=${message}`
       : `https://wa.me/?text=${message}`
