@@ -132,8 +132,7 @@ export async function PATCH(
           : `🎉 Votre commande est confirmée — La Ferme de Marie à Rio`
 
         await resend.emails.send({
-          from: 'La Ferme de Marie à Rio <onboarding@resend.dev>',
-          replyTo: 'arnould.jasmine@gmail.com',
+          from: 'La Ferme de Marie à Rio <contato@lafermedemarieario.com.br>',
           to: commande.email,
           subject,
           html: emailConfirmationHtml({

@@ -147,7 +147,6 @@ export async function POST(request: NextRequest) {
 
         await resend.emails.send({
           from: 'La Ferme de Marie à Rio <contato@lafermedemarieario.com.br>',
-          replyTo: 'arnould.jasmine@gmail.com',
           to: email,
           subject,
           html: emailHtml({ locale, prenom, total, lignesArticles, frais_livraison: frais_livraison > 0 ? frais_livraison : undefined, mode_livraison, adresse }),

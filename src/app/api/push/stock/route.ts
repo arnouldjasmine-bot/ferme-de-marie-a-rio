@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
       })
     )
 
-    console.log(`Push stock: sent=${sent}, errors=${JSON.stringify(errors)}`)
     return NextResponse.json({ ok: true, sent, total: subs?.length ?? 0, errors })
   } catch (err) {
     console.error('Erreur stock push:', err)
