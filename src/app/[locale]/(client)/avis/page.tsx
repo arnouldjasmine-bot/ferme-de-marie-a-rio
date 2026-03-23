@@ -3,15 +3,15 @@ import EtoilesDisplay from '@/components/client/EtoilesDisplay'
 
 type Props = { params: Promise<{ locale: string }> }
 
-type AvisProfile = { prenom: string; nom: string }
-
 type Avis = {
   id: string
+  user_id: string
   note: number
   commentaire: string | null
   locale: string
   created_at: string
-  profiles: AvisProfile | AvisProfile[] | null
+  prenom?: string
+  nom?: string
 }
 
 export const dynamic = 'force-dynamic'
@@ -21,13 +21,30 @@ export default async function PageAvis({ params }: Props) {
   const pt = locale === 'pt-BR'
 
   const supabase = createServiceClient()
-  const { data } = await supabase
+  const { data: avisRaw } = await supabase
     .from('avis')
-    .select('id, note, commentaire, locale, created_at, profiles(prenom, nom)')
+    .select('id, user_id, note, commentaire, locale, created_at')
     .eq('approuve', true)
     .order('created_at', { ascending: false })
 
-  const avis: Avis[] = (data ?? []) as unknown as Avis[]
+  const avisBase = (avisRaw ?? []) as Avis[]
+
+  // Récupérer les prénoms en une requête
+  const userIds = [...new Set(avisBase.map(a => a.user_id))]
+  const profilesMap: Record<string, { prenom: string; nom: string }> = {}
+  if (userIds.length > 0) {
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, prenom, nom')
+      .in('id', userIds)
+    for (const p of profilesData ?? []) profilesMap[p.id] = p
+  }
+
+  const avis: Avis[] = avisBase.map(a => ({
+    ...a,
+    prenom: profilesMap[a.user_id]?.prenom ?? '',
+    nom: profilesMap[a.user_id]?.nom ?? '',
+  }))
 
   const moyenneNote = avis.length > 0
     ? avis.reduce((sum, a) => sum + a.note, 0) / avis.length
@@ -63,10 +80,7 @@ export default async function PageAvis({ params }: Props) {
             <div className="flex items-start justify-between gap-3 mb-2">
               <div>
                 <p className="font-semibold text-sm" style={{ color: 'var(--vert-sauge-fonce)' }}>
-                  {(() => {
-                    const p = Array.isArray(a.profiles) ? a.profiles[0] : a.profiles
-                    return p ? `${p.prenom} ${p.nom ? p.nom[0] + '.' : ''}` : 'Client'
-                  })()}
+                  {a.prenom ? `${a.prenom}${a.nom ? ' ' + a.nom[0] + '.' : ''}` : 'Client'}
                 </p>
                 <p className="text-xs mt-0.5" style={{ color: 'var(--couleur-texte-doux)' }}>
                   {new Date(a.created_at).toLocaleDateString(pt ? 'pt-BR' : 'fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}

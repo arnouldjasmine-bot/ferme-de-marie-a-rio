@@ -3,28 +3,49 @@ import EtoilesDisplay from '@/components/client/EtoilesDisplay'
 import BoutonsAvis from '@/components/admin/BoutonsAvis'
 import BoutonRefresh from '@/components/admin/BoutonRefresh'
 
-type AvisProfile = { prenom: string; nom: string }
-
 type Avis = {
   id: string
+  user_id: string
   note: number
   commentaire: string | null
   approuve: boolean
   locale: string
   created_at: string
-  profiles: AvisProfile | AvisProfile[] | null
+  prenom?: string
+  nom?: string
 }
 
 export const dynamic = 'force-dynamic'
 
 export default async function PageAdminAvis() {
   const supabase = createServiceClient()
-  const { data } = await supabase
+
+  // Requête sans jointure pour éviter l'erreur si la FK n'est pas encore créée
+  const { data: avisRaw, error } = await supabase
     .from('avis')
-    .select('id, note, commentaire, approuve, locale, created_at, profiles(prenom, nom)')
+    .select('id, user_id, note, commentaire, approuve, locale, created_at')
     .order('created_at', { ascending: false })
 
-  const avis: Avis[] = (data ?? []) as unknown as Avis[]
+  if (error) console.error('[admin/avis] Erreur fetch avis:', error.message)
+
+  const avisBase = (avisRaw ?? []) as Avis[]
+
+  // Récupérer les prénoms/noms des utilisateurs en une seule requête
+  const userIds = [...new Set(avisBase.map(a => a.user_id))]
+  const profilesMap: Record<string, { prenom: string; nom: string }> = {}
+  if (userIds.length > 0) {
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, prenom, nom')
+      .in('id', userIds)
+    for (const p of profilesData ?? []) profilesMap[p.id] = p
+  }
+
+  const avis: Avis[] = avisBase.map(a => ({
+    ...a,
+    prenom: profilesMap[a.user_id]?.prenom ?? '',
+    nom: profilesMap[a.user_id]?.nom ?? '',
+  }))
   const enAttente = avis.filter(a => !a.approuve)
   const approuves = avis.filter(a => a.approuve)
 
@@ -85,10 +106,7 @@ function AvisCard({ a }: { a: Avis }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1">
             <span className="font-semibold text-sm" style={{ color: 'var(--couleur-texte)' }}>
-              {(() => {
-                const p = Array.isArray(a.profiles) ? a.profiles[0] : a.profiles
-                return p ? `${p.prenom} ${p.nom}` : '?'
-              })()}
+              {a.prenom || a.nom ? `${a.prenom} ${a.nom}`.trim() : 'Client'}
             </span>
             <EtoilesDisplay note={a.note} taille={13} />
             <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: a.locale === 'pt-BR' ? '#e8f0e8' : '#f0e8f0', color: 'var(--couleur-texte-doux)' }}>
