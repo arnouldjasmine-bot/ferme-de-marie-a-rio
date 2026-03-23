@@ -51,6 +51,7 @@ export default function NavClient() {
             width={200}
             height={130}
             className="object-contain w-28 sm:w-40 md:w-44"
+            style={{ mixBlendMode: 'multiply' }}
             priority
           />
         </Link>
