@@ -20,31 +20,40 @@ export default async function PageAvis({ params }: Props) {
   const { locale } = await params
   const pt = locale === 'pt-BR'
 
-  const supabase = createServiceClient()
-  const { data: avisRaw } = await supabase
-    .from('avis')
-    .select('id, user_id, note, commentaire, locale, created_at')
-    .eq('approuve', true)
-    .order('created_at', { ascending: false })
+  let avis: Avis[] = []
 
-  const avisBase = (avisRaw ?? []) as Avis[]
+  try {
+    const supabase = createServiceClient()
+    const { data: avisRaw, error: avisError } = await supabase
+      .from('avis')
+      .select('id, user_id, note, commentaire, locale, created_at')
+      .eq('approuve', true)
+      .order('created_at', { ascending: false })
 
-  // Récupérer les prénoms en une requête
-  const userIds = [...new Set(avisBase.map(a => a.user_id))]
-  const profilesMap: Record<string, { prenom: string; nom: string }> = {}
-  if (userIds.length > 0) {
-    const { data: profilesData } = await supabase
-      .from('profiles')
-      .select('id, prenom, nom')
-      .in('id', userIds)
-    for (const p of profilesData ?? []) profilesMap[p.id] = p
+    if (avisError) throw avisError
+
+    const avisBase = (avisRaw ?? []) as Avis[]
+
+    // Récupérer les prénoms en une requête séparée
+    const userIds = [...new Set(avisBase.map(a => a.user_id).filter(Boolean))]
+    const profilesMap: Record<string, { prenom: string; nom: string }> = {}
+    if (userIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, prenom, nom')
+        .in('id', userIds)
+      for (const p of (profilesData ?? [])) profilesMap[p.id] = p
+    }
+
+    avis = avisBase.map(a => ({
+      ...a,
+      prenom: profilesMap[a.user_id]?.prenom ?? '',
+      nom: profilesMap[a.user_id]?.nom ?? '',
+    }))
+  } catch (err) {
+    console.error('[avis] Erreur chargement:', err)
+    // Page s'affiche vide plutôt que crasher
   }
-
-  const avis: Avis[] = avisBase.map(a => ({
-    ...a,
-    prenom: profilesMap[a.user_id]?.prenom ?? '',
-    nom: profilesMap[a.user_id]?.nom ?? '',
-  }))
 
   const moyenneNote = avis.length > 0
     ? avis.reduce((sum, a) => sum + a.note, 0) / avis.length
