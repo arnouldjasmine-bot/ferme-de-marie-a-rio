@@ -35,8 +35,8 @@ export default async function PageProduits({ params }: Props) {
       />
       <div className="absolute inset-0" style={{ backgroundColor: 'rgba(245, 242, 233, 0.80)' }} />
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 py-10">
-      <div className="mb-10">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 pt-8 pb-4">
+      <div className="mb-6">
         <p className="text-sm uppercase tracking-widest font-semibold mb-1" style={{ color: 'var(--terracotta)' }}>
           {locale === 'pt-BR' ? 'Da fazenda para você' : 'De la ferme à vous'}
         </p>

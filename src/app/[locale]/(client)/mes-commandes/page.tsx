@@ -84,7 +84,7 @@ export default function PageMesCommandes() {
     : (commandes ?? [])
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="max-w-2xl mx-auto px-4 pt-6 pb-6">
       <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--police-titre, var(--font-playfair))' }}>
         {pt ? 'Meus pedidos' : 'Mes commandes'}
       </h1>

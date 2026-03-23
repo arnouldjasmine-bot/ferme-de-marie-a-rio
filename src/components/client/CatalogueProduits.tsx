@@ -75,11 +75,11 @@ export default function CatalogueProduits({ produits, locale, categories }: Prop
 
   return (
     <div>
-      {/* Filtres */}
-      <div className="flex gap-2 flex-wrap mb-8">
+      {/* Filtres — scroll horizontal sur mobile */}
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-4 px-4 scrollbar-hide">
         <button
           onClick={() => setFiltreCategorie('toutes')}
-          className="px-4 py-2 rounded-full text-sm font-medium transition-colors"
+          className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors"
           style={{
             backgroundColor: filtreCategorie === 'toutes' ? 'var(--couleur-primaire)' : 'var(--couleur-fond-carte)',
             color: filtreCategorie === 'toutes' ? '#fff' : 'var(--couleur-texte)',
@@ -91,7 +91,7 @@ export default function CatalogueProduits({ produits, locale, categories }: Prop
         {user && favorisIds.size > 0 && (
           <button
             onClick={() => setFiltreCategorie('favoris')}
-            className="px-4 py-2 rounded-full text-sm font-medium transition-colors"
+            className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors"
             style={{
               backgroundColor: filtreCategorie === 'favoris' ? 'var(--terracotta)' : 'var(--couleur-fond-carte)',
               color: filtreCategorie === 'favoris' ? '#fff' : 'var(--couleur-texte)',
@@ -105,7 +105,7 @@ export default function CatalogueProduits({ produits, locale, categories }: Prop
           <button
             key={cat.value}
             onClick={() => setFiltreCategorie(cat.value)}
-            className="px-4 py-2 rounded-full text-sm font-medium transition-colors"
+            className="shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors"
             style={{
               backgroundColor: filtreCategorie === cat.value ? 'var(--couleur-primaire)' : 'var(--couleur-fond-carte)',
               color: filtreCategorie === cat.value ? '#fff' : 'var(--couleur-texte)',
@@ -118,7 +118,7 @@ export default function CatalogueProduits({ produits, locale, categories }: Prop
       </div>
 
       {/* Grille produits */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 pb-6">
         {produitsFiltres.map(produit => {
           const quantiteAuPanier = articles.find(a => a.produit.id === produit.id)?.quantite ?? 0
           const estAjoute = ajoutes.has(produit.id)
@@ -126,12 +126,12 @@ export default function CatalogueProduits({ produits, locale, categories }: Prop
           return (
             <div
               key={produit.id}
-              className="rounded-xl overflow-hidden flex flex-col"
-              style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}
+              className="rounded-2xl overflow-hidden flex flex-col"
+              style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: '0 2px 16px rgba(74,93,78,0.10)' }}
             >
               {/* Image cliquable → fiche produit */}
-              <div className="relative" style={{ height: 140, backgroundColor: 'var(--couleur-accent)' }}>
-                <Link href={`/${locale}/produits/${produit.id}`} className="block w-full h-full">
+              <div className="relative aspect-[4/3]" style={{ backgroundColor: 'var(--couleur-accent)' }}>
+                <Link href={`/${locale}/produits/${produit.id}`} className="block w-full h-full absolute inset-0">
                   {produit.image_url
                     ? <img src={produit.image_url} alt={produit.nom} className="w-full h-full object-cover" />
                     : <div className="w-full h-full flex items-center justify-center text-4xl">
@@ -140,13 +140,12 @@ export default function CatalogueProduits({ produits, locale, categories }: Prop
                   }
                 </Link>
                 {produit.stock <= 3 && produit.stock > 0 && (
-                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-medium text-white" style={{ backgroundColor: 'var(--couleur-attention)' }}>
-                    {locale === 'pt-BR' ? 'Últimas unidades' : 'Dernières unités'}
+                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-semibold text-white" style={{ backgroundColor: 'var(--couleur-attention)', fontSize: 10 }}>
+                    {locale === 'pt-BR' ? 'Últimas' : 'Dernières'}
                   </span>
                 )}
-                {/* Bouton favori — visible uniquement si connecté */}
                 {user && (
-                  <div className="absolute top-2 right-2">
+                  <div className="absolute top-1.5 right-1.5">
                     <BoutonFavori
                       productId={produit.id}
                       locale={locale}
@@ -162,37 +161,36 @@ export default function CatalogueProduits({ produits, locale, categories }: Prop
               </div>
 
               {/* Contenu */}
-              <div className="p-3 flex flex-col flex-1 gap-2">
-                {produit.categorie && (
-                  <span className="text-xs font-medium" style={{ color: 'var(--couleur-texte-doux)' }}>
-                    {emojiCat(produit.categorie)} {labelCat(produit.categorie)}
-                  </span>
-                )}
-                <Link href={`/${locale}/produits/${produit.id}`} className="font-semibold text-sm leading-tight hover:underline" style={{ color: 'var(--couleur-texte)' }}>{produit.nom}</Link>
-                <div className="flex items-baseline gap-1 mt-auto">
-                  <span className="font-bold" style={{ color: 'var(--couleur-primaire-fonce)' }}>
+              <div className="p-3 flex flex-col flex-1 gap-1.5">
+                <p className="font-semibold text-sm leading-tight" style={{ color: 'var(--couleur-texte)' }}>
+                  {produit.nom}
+                </p>
+                <div className="flex items-baseline gap-1 mt-auto pt-1">
+                  <span className="font-bold text-sm" style={{ color: 'var(--couleur-primaire-fonce)' }}>
                     R$ {produit.prix.toFixed(2)}
                   </span>
                   <span className="text-xs" style={{ color: 'var(--couleur-texte-doux)' }}>/ {tradUnit(produit.unite, locale)}</span>
                 </div>
-                <p className="text-xs" style={{ color: produit.stock <= 3 ? 'var(--couleur-attention)' : 'var(--couleur-texte-doux)' }}>
-                  {locale === 'pt-BR' ? `Estoque: ${produit.stock}` : `Stock : ${produit.stock}`}
-                </p>
+                {produit.stock <= 3 && produit.stock > 0 && (
+                  <p className="text-xs font-medium" style={{ color: 'var(--couleur-attention)' }}>
+                    {locale === 'pt-BR' ? `${produit.stock} restantes` : `${produit.stock} restants`}
+                  </p>
+                )}
 
                 {produit.stock === 0
-                  ? <p className="text-xs text-center py-2 rounded-lg" style={{ backgroundColor: 'var(--couleur-accent)', color: 'var(--couleur-texte-doux)' }}>
+                  ? <p className="text-xs text-center py-2 rounded-xl mt-1" style={{ backgroundColor: 'var(--couleur-accent)', color: 'var(--couleur-texte-doux)' }}>
                       {t('rupture')}
                     </p>
                   : (
                     <button
                       onClick={() => handleAjouter(produit)}
-                      className="w-full py-2 rounded-lg text-white text-sm font-medium transition-all"
+                      className="w-full py-2.5 rounded-xl text-white text-xs font-semibold transition-all mt-1"
                       style={{
                         backgroundColor: estAjoute ? 'var(--couleur-succes)' : 'var(--couleur-primaire)',
                         transform: estAjoute ? 'scale(0.97)' : 'scale(1)'
                       }}
                     >
-                      {estAjoute ? (locale === 'pt-BR' ? '✓ Adicionado' : '✓ Ajouté') : quantiteAuPanier > 0 ? `${t('ajouter')} (${quantiteAuPanier})` : t('ajouter')}
+                      {estAjoute ? '✓' : quantiteAuPanier > 0 ? `+ (${quantiteAuPanier})` : locale === 'pt-BR' ? '+ Carrinho' : '+ Panier'}
                     </button>
                   )
                 }

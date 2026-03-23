@@ -7,6 +7,15 @@ body {
   font-family: var(--font-dm-sans, 'DM Sans'), 'Segoe UI', Arial, sans-serif;
 }
 
+/* Masque la scrollbar sur les conteneurs à défilement horizontal */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 h1, h2, h3 {
   font-family: var(--font-playfair, 'Playfair Display'), Georgia, serif;
 }

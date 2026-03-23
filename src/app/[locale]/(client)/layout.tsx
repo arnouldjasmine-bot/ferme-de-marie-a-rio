@@ -14,8 +14,7 @@ export default async function ClientLayout({ children, params }: Props) {
         <main className="flex-1">
           {children}
         </main>
-        <BottomNavClient />
-        <footer className="py-4" style={{ backgroundColor: 'var(--vert-sauge-fonce)', color: '#fff' }}>
+        <footer className="py-4 hidden sm:block" style={{ backgroundColor: 'var(--vert-sauge-fonce)', color: '#fff' }}>
           <div className="max-w-5xl mx-auto px-4 flex flex-row items-center justify-between gap-2">
             <div>
               <p className="font-bold text-sm" style={{ fontFamily: 'var(--font-playfair)' }}>La Ferme de Marie à Rio</p>
@@ -32,6 +31,7 @@ export default async function ClientLayout({ children, params }: Props) {
             </a>
           </div>
         </footer>
+        <BottomNavClient />
       </div>
     </AuthProvider>
   )

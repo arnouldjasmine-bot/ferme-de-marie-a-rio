@@ -209,7 +209,7 @@ export default async function PageAccueil({ params }: Props) {
       )}
 
       {/* ── CTA submark ── */}
-      <section className="py-16 text-center" style={{ backgroundColor: 'var(--creme-fonce)' }}>
+      <section className="py-12 text-center" style={{ backgroundColor: 'var(--creme-fonce)' }}>
         <Image src="/logo-submark.png" alt="FM" width={140} height={140} className="mx-auto mb-6 object-contain" />
         <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
           {locale === 'pt-BR' ? 'Direto da fazenda para você' : 'Directement de la ferme à vous'}
