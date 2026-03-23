@@ -92,7 +92,7 @@ export default async function PageAccueil({ params }: Props) {
         <div className="relative z-10 flex flex-col items-center justify-center text-center px-5 py-12 md:py-24">
           {/* Logo principal blanc */}
           <div className="mb-4 drop-shadow-lg">
-            <Image src="/logo.png" alt="Ferme de Marie à Rio" width={380} height={250} className="object-contain brightness-0 invert w-48 sm:w-72 md:w-96" priority />
+            <Image src="/logo.png" alt="Ferme de Marie à Rio" width={380} height={250} className="object-contain w-48 sm:w-72 md:w-96" priority />
           </div>
           <p
             className="mb-8 max-w-xs sm:max-w-md text-white/90"
