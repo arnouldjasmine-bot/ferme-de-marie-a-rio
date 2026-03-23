@@ -37,7 +37,7 @@ export default function PageMesCommandes() {
   const params = useParams()
   const locale = (params?.locale as string) ?? 'fr'
   const pt = locale === 'pt-BR'
-  const { user, loading } = useAuth()
+  const { user, loading, signOut } = useAuth()
 
   const [email, setEmail]       = useState('')
   const [commandes, setCommandes] = useState<Commande[] | null>(null)
@@ -89,10 +89,17 @@ export default function PageMesCommandes() {
         {pt ? 'Meus pedidos' : 'Mes commandes'}
       </h1>
 
-      {/* Bouton notifications — visible si connecté */}
+      {/* Barre compte — visible si connecté */}
       {!loading && user && (
-        <div className="mb-4">
+        <div className="flex items-center justify-between mb-4 gap-3">
           <BoutonNotifications locale={locale} />
+          <button
+            onClick={async () => { await signOut(); window.location.href = `/${locale}` }}
+            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-opacity hover:opacity-70"
+            style={{ color: 'var(--couleur-texte-doux)', borderColor: 'var(--couleur-bordure)' }}
+          >
+            ↩ {pt ? 'Sair' : 'Déconnexion'}
+          </button>
         </div>
       )}
 
