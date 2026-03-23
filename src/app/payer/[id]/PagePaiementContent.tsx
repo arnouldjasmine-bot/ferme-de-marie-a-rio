@@ -16,7 +16,7 @@ type Order = {
   locale: string
 }
 
-const PIX_CLE          = '+55 21 971666858'
+const PIX_CLE          = '21971666858'
 const PIX_BENEFICIAIRE = 'Ferme de Marie à Rio'
 
 export default function PagePaiementContent({ order }: { order: Order }) {
