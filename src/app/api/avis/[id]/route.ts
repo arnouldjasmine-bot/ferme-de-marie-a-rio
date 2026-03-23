@@ -1,31 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
-
-async function isAdmin(request: NextRequest): Promise<boolean> {
-  // Dev cookie
-  if (request.cookies.get('dev-admin-session')?.value === 'authenticated') return true
-
-  // Supabase Auth session (production)
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!supabaseUrl) return false
-
-  const hostname = new URL(supabaseUrl).hostname.split('.')[0]
-  const accessToken =
-    request.cookies.get('sb-access-token')?.value ||
-    request.cookies.get(`sb-${hostname}-auth-token`)?.value
-
-  if (!accessToken) return false
-
-  const supabase = createServiceClient()
-  const { data: { user } } = await supabase.auth.getUser(accessToken)
-  return !!user
-}
+import { isAdminRequest } from '@/lib/supabase/admin-auth'
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!await isAdmin(request)) {
+  if (!await isAdminRequest(request)) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
@@ -46,7 +27,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!await isAdmin(request)) {
+  if (!await isAdminRequest(request)) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 

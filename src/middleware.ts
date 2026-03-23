@@ -61,11 +61,17 @@ export default async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    // Vérification du cookie de session Supabase
-    const accessToken = request.cookies.get('sb-access-token')?.value ||
-      request.cookies.get(`sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`)?.value
+    // Vérification via le client SSR Supabase (gère le format de cookie correctement)
+    const { createServerClient } = await import('@supabase/ssr')
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: () => {},
+      },
+    })
+    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!accessToken) {
+    if (!user) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
 

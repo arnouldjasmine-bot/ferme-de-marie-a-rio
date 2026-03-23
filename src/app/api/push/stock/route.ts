@@ -1,30 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { sendPush, type PushSubscriptionRecord } from '@/lib/push'
-import { cookies } from 'next/headers'
-
-async function isAdmin(): Promise<boolean> {
-  const cookieStore = await cookies()
-  // Dev cookie
-  if (cookieStore.get('dev-admin-session')?.value === 'authenticated') return true
-
-  // Supabase Auth session (production)
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!supabaseUrl) return false
-  const hostname = new URL(supabaseUrl).hostname.split('.')[0]
-  const accessToken =
-    cookieStore.get('sb-access-token')?.value ||
-    cookieStore.get(`sb-${hostname}-auth-token`)?.value
-
-  if (!accessToken) return false
-  const supabase = createServiceClient()
-  const { data: { user } } = await supabase.auth.getUser(accessToken)
-  return !!user
-}
+import { isAdminRequest } from '@/lib/supabase/admin-auth'
 
 export async function POST(request: NextRequest) {
-  void request
-  if (!await isAdmin()) {
+  if (!await isAdminRequest(request)) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 

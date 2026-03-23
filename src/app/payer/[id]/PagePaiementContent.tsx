@@ -16,7 +16,7 @@ type Order = {
   locale: string
 }
 
-const PIX_CLE          = 'lafermedemarie@gmail.com'
+const PIX_CLE          = '+55 21 971666858'
 const PIX_BENEFICIAIRE = 'Ferme de Marie à Rio'
 
 export default function PagePaiementContent({ order }: { order: Order }) {
@@ -56,6 +56,10 @@ export default function PagePaiementContent({ order }: { order: Order }) {
       const res = await fetch(`/api/commandes/${order.id}/payer`, { method: 'POST', body: data })
       if (!res.ok) throw new Error('Erreur serveur')
       setSucces(true)
+      // Redirection vers mes commandes après 2 secondes
+      setTimeout(() => {
+        window.location.href = `/${order.locale}/mes-commandes`
+      }, 2000)
     } catch {
       setErreur(pt
         ? 'Erro ao enviar. Tente novamente.'
@@ -87,6 +91,9 @@ export default function PagePaiementContent({ order }: { order: Order }) {
           </div>
           <p style={{ color: 'var(--vert-sauge-fonce)', fontWeight: 600, fontSize: '1.1rem' }}>
             {pt ? 'Obrigado! Seu pagamento foi recebido.' : 'Merci ! Votre paiement a bien été reçu.'}
+          </p>
+          <p style={{ color: 'var(--couleur-texte-doux)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+            {pt ? 'Redirecionando...' : 'Redirection en cours…'}
           </p>
         </div>
       </div>

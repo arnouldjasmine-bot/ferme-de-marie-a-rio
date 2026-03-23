@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import EtoilesDisplay from '@/components/client/EtoilesDisplay'
 import BoutonsAvis from '@/components/admin/BoutonsAvis'
+import BoutonRefresh from '@/components/admin/BoutonRefresh'
 
 type AvisProfile = { prenom: string; nom: string }
 
@@ -29,9 +30,12 @@ export default async function PageAdminAvis() {
 
   return (
     <div>
-      <h1 className="text-xl md:text-2xl font-bold mb-6" style={{ color: 'var(--couleur-primaire-fonce)', fontFamily: 'var(--police-titre)' }}>
-        Avis clients ({avis.length})
-      </h1>
+      <div className="flex items-center justify-between mb-6 gap-4">
+        <h1 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--couleur-primaire-fonce)', fontFamily: 'var(--police-titre)' }}>
+          Avis clients ({avis.length})
+        </h1>
+        <BoutonRefresh />
+      </div>
 
       {/* En attente */}
       {enAttente.length > 0 && (

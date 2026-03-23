@@ -1,18 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { useAuth } from '@/components/client/AuthProvider'
 import FormulaireAvis from '@/components/client/FormulaireAvis'
+import EtoilesDisplay from '@/components/client/EtoilesDisplay'
 import BoutonNotifications from '@/components/client/BoutonNotifications'
-
-const STATUT_LABELS: Record<string, { fr: string; pt: string; color: string }> = {
-  en_attente: { fr: 'En attente',  pt: 'Aguardando', color: '#D27D56' },
-  confirmee:  { fr: 'Confirmée',   pt: 'Confirmado', color: '#4A5D4E' },
-  livree:     { fr: 'Livrée',      pt: 'Entregue',   color: '#93A27D' },
-  finalisee:  { fr: 'Finalisée',   pt: 'Finalizado', color: '#4A5D4E' },
-}
 
 type Article = { nom: string; quantite: number; prix: number }
 type Commande = {
@@ -28,9 +22,27 @@ type Commande = {
   comprovante_url?: string | null
   mode_livraison?: string
 }
+type AvisResume = { id: string; note: number; commentaire: string | null }
 
+/** Commande livrée ET payée (ou comprovante envoyé) = finalisée → Passées */
 function isFinalisee(c: Commande): boolean {
   return c.statut === 'livree' && (c.paiement_statut === 'payee' || !!c.comprovante_url)
+}
+
+function getStatutBadge(c: Commande, pt: boolean): { label: string; color: string; urgent?: boolean } {
+  if (isFinalisee(c)) return { label: pt ? 'Finalizado ✅' : 'Finalisée ✅', color: '#4A5D4E' }
+
+  const payee = c.paiement_statut === 'payee' || !!c.comprovante_url
+
+  if (c.statut === 'livree') {
+    if (!payee) return { label: pt ? '⚠️ Entregue — A pagar' : '⚠️ Livrée — À régler', color: '#c0392b', urgent: true }
+  }
+  if (c.statut === 'confirmee') {
+    if (payee) return { label: pt ? 'Pago ✅ — Aguardando entrega' : 'Payée ✅ — En attente de livraison', color: '#4A5D4E' }
+    return { label: pt ? 'Confirmado' : 'Confirmée', color: '#4A5D4E' }
+  }
+  if (c.statut === 'annulee') return { label: pt ? 'Cancelado' : 'Annulée', color: '#999' }
+  return { label: pt ? 'Aguardando' : 'En attente', color: '#D27D56' }
 }
 
 export default function PageMesCommandes() {
@@ -39,24 +51,19 @@ export default function PageMesCommandes() {
   const pt = locale === 'pt-BR'
   const { user, loading, signOut } = useAuth()
 
-  const [email, setEmail]       = useState('')
+  const [email, setEmail]         = useState('')
   const [commandes, setCommandes] = useState<Commande[] | null>(null)
   const [chargement, setChargement] = useState(false)
-  const [onglet, setOnglet]     = useState<'en_cours' | 'passees'>('en_cours')
+  const [onglet, setOnglet]       = useState<'en_cours' | 'passees'>('en_cours')
   const [avisOuvertId, setAvisOuvertId] = useState<string | null>(null)
+  const [avisParCommande, setAvisParCommande] = useState<Record<string, AvisResume>>({})
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
 
-  // Charge automatiquement si authentifié
-  useEffect(() => {
-    if (user) chargerParAuth()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user])
-
-  async function chargerParAuth() {
+  const chargerParAuth = useCallback(async () => {
     setChargement(true)
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { setChargement(false); return }
@@ -64,9 +71,30 @@ export default function PageMesCommandes() {
     const res = await fetch('/api/mes-commandes', {
       headers: { Authorization: `Bearer ${session.access_token}` },
     })
-    setCommandes(await res.json())
+    const data: Commande[] = await res.json()
+    setCommandes(data)
+
+    // Charger les avis existants pour ces commandes
+    if (data.length > 0) {
+      const orderIds = data.map(c => c.id)
+      const { data: avisData } = await supabase
+        .from('avis')
+        .select('id, order_id, note, commentaire')
+        .in('order_id', orderIds)
+        .eq('user_id', session.user.id)
+      if (avisData) {
+        const map: Record<string, AvisResume> = {}
+        for (const a of avisData) {
+          map[a.order_id] = { id: a.id, note: a.note, commentaire: a.commentaire }
+        }
+        setAvisParCommande(map)
+      }
+    }
     setChargement(false)
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => { if (user) chargerParAuth() }, [user, chargerParAuth])
 
   async function chercher(e: React.FormEvent) {
     e.preventDefault()
@@ -85,9 +113,25 @@ export default function PageMesCommandes() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-6 pb-6">
-      <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--police-titre, var(--font-playfair))' }}>
-        {pt ? 'Meus pedidos' : 'Mes commandes'}
-      </h1>
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--police-titre, var(--font-playfair))' }}>
+          {pt ? 'Meus pedidos' : 'Mes commandes'}
+        </h1>
+        {/* Bouton refresh */}
+        {user && commandes !== null && (
+          <button
+            onClick={chargerParAuth}
+            disabled={chargement}
+            title={pt ? 'Atualizar' : 'Actualiser'}
+            className="p-2 rounded-full transition-opacity hover:opacity-70 disabled:opacity-40"
+            style={{ backgroundColor: 'var(--couleur-accent)' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={chargement ? 'animate-spin' : ''}>
+              <path d="M21 2v6h-6M3 22v-6h6M21 13a9 9 0 01-15.66 6.16M3 11a9 9 0 0115.66-6.16"/>
+            </svg>
+          </button>
+        )}
+      </div>
 
       {/* Barre compte — visible si connecté */}
       {!loading && user && (
@@ -103,12 +147,12 @@ export default function PageMesCommandes() {
         </div>
       )}
 
-      {/* Pendant le chargement de l'auth → spinner uniquement */}
+      {/* Pendant le chargement de l'auth */}
       {loading && (
         <div className="py-16 text-center" style={{ color: 'var(--couleur-texte-doux)' }}>…</div>
       )}
 
-      {/* Non connecté (auth chargée) → formulaire email */}
+      {/* Non connecté → formulaire email */}
       {!loading && !user && (
         <>
           <p className="text-sm mb-6" style={{ color: 'var(--couleur-texte-doux)' }}>
@@ -136,7 +180,7 @@ export default function PageMesCommandes() {
         </>
       )}
 
-      {/* Onglets (connecté) */}
+      {/* Onglets En cours / Passées (connecté) */}
       {user && commandes !== null && (
         <div className="flex gap-2 mb-6">
           <button
@@ -181,12 +225,15 @@ export default function PageMesCommandes() {
       {!chargement && commandesAffichees.length > 0 && (
         <div className="flex flex-col gap-4">
           {commandesAffichees.map(c => {
-            const finalisee = isFinalisee(c)
-            const statutKey = finalisee ? 'finalisee' : c.statut
-            const statut = STATUT_LABELS[statutKey] ?? STATUT_LABELS[c.statut]
+            const finalisee  = isFinalisee(c)
+            const badge      = getStatutBadge(c, pt)
+            const payee      = c.paiement_statut === 'payee' || !!c.comprovante_url
+            const besoinPaiement = !payee && (c.statut === 'confirmee' || c.statut === 'livree')
+            const avisExistant = avisParCommande[c.id]
 
             return (
-              <div key={c.id} className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
+              <div key={c.id} className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)', borderLeft: badge.urgent ? '3px solid #c0392b' : undefined }}>
+
                 {/* En-tête */}
                 <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--couleur-bordure)' }}>
                   <div>
@@ -195,9 +242,9 @@ export default function PageMesCommandes() {
                       {new Date(c.created_at).toLocaleDateString(pt ? 'pt-BR' : 'fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs px-2.5 py-1 rounded-full text-white font-medium" style={{ backgroundColor: statut?.color ?? '#ccc' }}>
-                      {pt ? statut?.pt : statut?.fr}
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                    <span className="text-xs px-2.5 py-1 rounded-full text-white font-medium" style={{ backgroundColor: badge.color }}>
+                      {badge.label}
                     </span>
                     <span className="font-bold text-sm" style={{ color: 'var(--vert-sauge-fonce)' }}>R$ {c.total.toFixed(2)}</span>
                   </div>
@@ -210,44 +257,55 @@ export default function PageMesCommandes() {
                       {a.nom} × {a.quantite} — R$ {(a.prix * a.quantite).toFixed(2)}
                     </p>
                   ))}
-                  <p className="text-xs mt-2" style={{ color: 'var(--couleur-texte-doux)' }}>
-                    📍 {c.adresse}
-                  </p>
+                  <p className="text-xs mt-2" style={{ color: 'var(--couleur-texte-doux)' }}>📍 {c.adresse}</p>
                 </div>
 
                 {/* Actions */}
-                {(c.statut === 'confirmee' || c.statut === 'livree' || finalisee) && (
-                  <div className="px-4 pb-4 flex flex-wrap gap-2">
-                    {(c.statut === 'confirmee' || c.statut === 'livree') && !finalisee && (
-                      <a
-                        href={`/payer/${c.id}`}
-                        className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-white text-sm font-medium transition-opacity hover:opacity-90"
-                        style={{ backgroundColor: 'var(--terracotta)' }}
+                <div className="px-4 pb-4 flex flex-col gap-2">
+                  {/* Bouton paiement */}
+                  {besoinPaiement && (
+                    <a
+                      href={`/payer/${c.id}`}
+                      className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-white text-sm font-medium transition-opacity hover:opacity-90 self-start"
+                      style={{ backgroundColor: badge.urgent ? '#c0392b' : 'var(--terracotta)' }}
+                    >
+                      🔗 {pt ? 'Acessar pagamento' : 'Accéder au paiement'}
+                    </a>
+                  )}
+
+                  {/* Avis — uniquement sur commandes finalisées */}
+                  {finalisee && user && (
+                    avisExistant ? (
+                      /* Avis déjà soumis → afficher */
+                      <div className="rounded-xl p-3 flex items-start gap-2" style={{ backgroundColor: 'var(--couleur-accent)' }}>
+                        <EtoilesDisplay note={avisExistant.note} taille={13} />
+                        {avisExistant.commentaire && (
+                          <p className="text-xs italic flex-1" style={{ color: 'var(--couleur-texte-doux)' }}>"{avisExistant.commentaire}"</p>
+                        )}
+                        <span className="text-xs shrink-0" style={{ color: 'var(--couleur-texte-doux)' }}>
+                          {pt ? '✅ Avaliação enviada' : '✅ Avis envoyé'}
+                        </span>
+                      </div>
+                    ) : avisOuvertId === c.id ? (
+                      <FormulaireAvis
+                        orderId={c.id}
+                        locale={locale}
+                        onSoumis={() => {
+                          setAvisOuvertId(null)
+                          chargerParAuth()
+                        }}
+                      />
+                    ) : (
+                      <button
+                        onClick={() => setAvisOuvertId(c.id)}
+                        className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium border transition-colors hover:opacity-80 self-start"
+                        style={{ color: 'var(--vert-sauge-fonce)', borderColor: 'var(--couleur-bordure)' }}
                       >
-                        🔗 {pt ? 'Acessar pagamento' : 'Accéder au paiement'}
-                      </a>
-                    )}
-                    {finalisee && user && (
-                      avisOuvertId === c.id ? (
-                        <div className="w-full mt-2">
-                          <FormulaireAvis
-                            orderId={c.id}
-                            locale={locale}
-                            onSoumis={() => setAvisOuvertId(null)}
-                          />
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setAvisOuvertId(c.id)}
-                          className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium border transition-colors hover:opacity-80"
-                          style={{ color: 'var(--vert-sauge-fonce)', borderColor: 'var(--couleur-bordure)' }}
-                        >
-                          ⭐ {pt ? 'Deixar avaliação' : 'Laisser un avis'}
-                        </button>
-                      )
-                    )}
-                  </div>
-                )}
+                        ⭐ {pt ? 'Deixar avaliação' : 'Laisser un avis'}
+                      </button>
+                    )
+                  )}
+                </div>
               </div>
             )
           })}
