@@ -123,7 +123,6 @@ function AvisCard({ a }: { a: Avis }) {
         <BoutonsAvis
           avisId={a.id}
           approuve={a.approuve}
-          onAction={() => { /* revalidation via router.refresh() côté client */ }}
         />
       </div>
     </div>
