@@ -64,6 +64,13 @@ export default function NavClient() {
           >
             {t('produits')}
           </Link>
+          <Link
+            href={`/${locale}/avis`}
+            className="relative pb-0.5 transition-colors hover:opacity-70"
+            style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-dm-sans)' }}
+          >
+            {pt ? 'Avaliações' : 'Avis'}
+          </Link>
         </nav>
 
         {/* Droite : langue + compte + panier */}

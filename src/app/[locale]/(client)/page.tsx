@@ -2,10 +2,12 @@ import { getTranslations } from 'next-intl/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createServiceClient } from '@/lib/supabase/service'
+import EtoilesDisplay from '@/components/client/EtoilesDisplay'
 import type { Produit } from '@/types'
 
 type Props = { params: Promise<{ locale: string }> }
 type PageContent = Record<string, { valeur_fr: string; valeur_pt: string }>
+type AvisAccueil = { id: string; note: number; commentaire: string | null; prenom: string; nom: string }
 
 function getSaisonRio(mois: number) {
   if (mois === 12 || mois <= 3) return { fr: 'Été',       pt: 'Verão',    emoji: '☀️', couleur: 'var(--terracotta)' }
@@ -21,7 +23,7 @@ export default async function PageAccueil({ params }: Props) {
   const t = await getTranslations('accueil')
 
   const supabase = createServiceClient()
-  const [{ data: produitsData }, { data: pageData }] = await Promise.all([
+  const [{ data: produitsData }, { data: pageData }, { data: avisRaw }] = await Promise.all([
     supabase
       .from('products')
       .select('id, nom, prix, unite, stock, image_url, categorie, actif')
@@ -32,7 +34,32 @@ export default async function PageAccueil({ params }: Props) {
     supabase
       .from('page_content')
       .select('cle, valeur_fr, valeur_pt'),
+    supabase
+      .from('avis')
+      .select('id, user_id, note, commentaire')
+      .eq('approuve', true)
+      .order('created_at', { ascending: false })
+      .limit(3),
   ])
+
+  // Récupérer les prénoms pour les avis
+  const avisBase = (avisRaw ?? []) as { id: string; user_id: string; note: number; commentaire: string | null }[]
+  const avisUserIds = [...new Set(avisBase.map(a => a.user_id).filter(Boolean))]
+  const avisProfilesMap: Record<string, { prenom: string; nom: string }> = {}
+  if (avisUserIds.length > 0) {
+    const { data: avisProfiles } = await supabase
+      .from('profiles')
+      .select('id, prenom, nom')
+      .in('id', avisUserIds)
+    for (const p of (avisProfiles ?? [])) avisProfilesMap[p.id] = p
+  }
+  const avisAccueil: AvisAccueil[] = avisBase.map(a => ({
+    id: a.id,
+    note: a.note,
+    commentaire: a.commentaire,
+    prenom: avisProfilesMap[a.user_id]?.prenom ?? '',
+    nom: avisProfilesMap[a.user_id]?.nom ?? '',
+  }))
 
   const produitsSaison: Produit[] = (produitsData ?? []) as Produit[]
   const saison = getSaisonRio(new Date().getMonth() + 1)
@@ -204,6 +231,44 @@ export default async function PageAccueil({ params }: Props) {
                 {locale === 'pt-BR' ? 'Ver todos os produtos →' : 'Voir tous les produits →'}
               </Link>
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── Avis clients ── */}
+      {avisAccueil.length > 0 && (
+        <section className="px-4 py-10 md:py-16 max-w-5xl mx-auto">
+          <div className="text-center mb-8">
+            <p className="text-sm uppercase tracking-widest mb-2 font-semibold" style={{ color: 'var(--terracotta)' }}>
+              {pt ? 'O que dizem nossos clientes' : 'Ce que disent nos clients'}
+            </p>
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
+              {pt ? 'Avaliações' : 'Avis clients'}
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            {avisAccueil.map(a => (
+              <div key={a.id} className="rounded-2xl p-5" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
+                <EtoilesDisplay note={a.note} taille={14} />
+                {a.commentaire && (
+                  <p className="text-sm mt-3 leading-relaxed italic" style={{ color: 'var(--couleur-texte)' }}>
+                    &ldquo;{a.commentaire}&rdquo;
+                  </p>
+                )}
+                <p className="text-xs mt-3 font-semibold" style={{ color: 'var(--vert-sauge-fonce)' }}>
+                  {a.prenom ? `${a.prenom}${a.nom ? ' ' + a.nom[0] + '.' : ''}` : 'Client'}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-8">
+            <Link
+              href={`/${locale}/avis`}
+              className="inline-block px-7 py-3 rounded-full font-semibold text-sm transition-all hover:scale-105"
+              style={{ border: '2px solid var(--vert-sauge-fonce)', color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-dm-sans)' }}
+            >
+              {pt ? 'Ver todas as avaliações →' : 'Voir tous les avis →'}
+            </Link>
           </div>
         </section>
       )}
