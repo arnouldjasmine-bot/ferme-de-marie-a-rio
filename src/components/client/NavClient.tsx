@@ -48,9 +48,9 @@ export default function NavClient() {
           <Image
             src="/logo.png"
             alt="Ferme de Marie à Rio"
-            width={160}
-            height={105}
-            className="object-contain w-20 sm:w-32 md:w-36"
+            width={200}
+            height={130}
+            className="object-contain w-28 sm:w-40 md:w-44"
             priority
           />
         </Link>
