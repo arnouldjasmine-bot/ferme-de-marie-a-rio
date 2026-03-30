@@ -35,6 +35,7 @@ export default function FormulaireCommandeMedRio({ produits }: { produits: Produ
   )
   const [botafogo, setBotafogo] = useState(true)
   const [barra, setBarra] = useState(true)
+  const [fraisLivraison, setFraisLivraison] = useState(35)
   const [chargement, setChargement] = useState(false)
   const [erreur, setErreur] = useState('')
   const [lienPaiement, setLienPaiement] = useState('')
@@ -42,10 +43,8 @@ export default function FormulaireCommandeMedRio({ produits }: { produits: Produ
 
   const articlesSelectionnes = lignes.filter(l => l.quantite > 0)
 
-  const total = articlesSelectionnes.reduce(
-    (acc, l) => acc + l.prix_custom * l.quantite,
-    0
-  )
+  const sousTotal = articlesSelectionnes.reduce((acc, l) => acc + l.prix_custom * l.quantite, 0)
+  const total = sousTotal + fraisLivraison
 
   function setQuantite(id: string, val: number) {
     setLignes(prev =>
@@ -86,7 +85,7 @@ export default function FormulaireCommandeMedRio({ produits }: { produits: Produ
       const res = await fetch('/api/commandes/medrio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ articles, adresse, adresse2, total }),
+        body: JSON.stringify({ articles, adresse, adresse2, total, frais_livraison: fraisLivraison }),
       })
       const json = await res.json()
       if (!json.ok) throw new Error(json.error ?? 'Erreur')
@@ -154,6 +153,25 @@ export default function FormulaireCommandeMedRio({ produits }: { produits: Produ
         </div>
       </div>
 
+      {/* Frais de livraison */}
+      <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
+        <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--couleur-texte-doux)' }}>
+          Frais de livraison
+        </p>
+        <div className="flex items-center gap-2">
+          <span className="text-sm" style={{ color: 'var(--couleur-texte-doux)' }}>R$</span>
+          <input
+            type="number"
+            min={0}
+            step={1}
+            value={fraisLivraison}
+            onChange={e => setFraisLivraison(parseFloat(e.target.value) || 0)}
+            className="w-24 text-sm border rounded-lg px-2 py-1 outline-none"
+            style={{ borderColor: 'var(--couleur-bordure)', color: 'var(--couleur-texte)' }}
+          />
+        </div>
+      </div>
+
       {/* Articles */}
       <div className="rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
         <p className="text-xs font-semibold uppercase tracking-wider px-4 pt-4 pb-2" style={{ color: 'var(--couleur-texte-doux)' }}>
@@ -211,9 +229,19 @@ export default function FormulaireCommandeMedRio({ produits }: { produits: Produ
 
         {/* Total */}
         {articlesSelectionnes.length > 0 && (
-          <div className="px-4 py-3 flex items-center justify-between" style={{ borderTop: '2px solid var(--couleur-bordure)' }}>
-            <span className="text-sm font-bold" style={{ color: 'var(--couleur-primaire-fonce)' }}>Total</span>
-            <span className="text-lg font-bold" style={{ color: 'var(--couleur-primaire-fonce)' }}>R$ {total.toFixed(2)}</span>
+          <div className="px-4 py-3 flex flex-col gap-1" style={{ borderTop: '2px solid var(--couleur-bordure)' }}>
+            <div className="flex items-center justify-between text-sm" style={{ color: 'var(--couleur-texte-doux)' }}>
+              <span>Sous-total articles</span>
+              <span>R$ {sousTotal.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm" style={{ color: 'var(--couleur-texte-doux)' }}>
+              <span>Frais de livraison</span>
+              <span>R$ {fraisLivraison.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between mt-1">
+              <span className="text-sm font-bold" style={{ color: 'var(--couleur-primaire-fonce)' }}>Total</span>
+              <span className="text-lg font-bold" style={{ color: 'var(--couleur-primaire-fonce)' }}>R$ {total.toFixed(2)}</span>
+            </div>
           </div>
         )}
       </div>
@@ -258,7 +286,7 @@ export default function FormulaireCommandeMedRio({ produits }: { produits: Produ
           className="w-full py-3 rounded-xl text-white font-semibold text-sm transition-opacity hover:opacity-90 disabled:opacity-40"
           style={{ backgroundColor: 'var(--vert-sauge-fonce)' }}
         >
-          {chargement ? 'Création en cours…' : `Créer la commande — R$ ${total.toFixed(2)}`}
+          {chargement ? 'Création en cours…' : `Créer la commande — R$ ${(sousTotal + fraisLivraison).toFixed(2)}`}
         </button>
       )}
     </div>

@@ -129,8 +129,8 @@ export async function POST(request: NextRequest) {
         })
     )
 
-    // Email de confirmation client
-    if (email && process.env.RESEND_API_KEY) {
+    // Emails
+    if (process.env.RESEND_API_KEY) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY)
         const lignesArticles = articles.map((a: { nom: string; quantite: number; prix: number }) =>
@@ -141,16 +141,54 @@ export async function POST(request: NextRequest) {
           </tr>`
         ).join('')
 
-        const subject = locale === 'pt-BR'
-          ? `✅ Pedido recebido — La Ferme de Marie à Rio`
-          : `✅ Commande reçue — La Ferme de Marie à Rio`
+        // Email de confirmation client
+        if (email) {
+          const subject = locale === 'pt-BR'
+            ? `✅ Pedido recebido — La Ferme de Marie à Rio`
+            : `✅ Commande reçue — La Ferme de Marie à Rio`
+          await resend.emails.send({
+            from: 'La Ferme de Marie à Rio <contato@lafermedemarieario.com.br>',
+            to: email,
+            subject,
+            html: emailHtml({ locale, prenom, total, lignesArticles, frais_livraison: frais_livraison > 0 ? frais_livraison : undefined, mode_livraison, adresse }),
+          })
+        }
 
-        await resend.emails.send({
-          from: 'La Ferme de Marie à Rio <contato@lafermedemarieario.com.br>',
-          to: email,
-          subject,
-          html: emailHtml({ locale, prenom, total, lignesArticles, frais_livraison: frais_livraison > 0 ? frais_livraison : undefined, mode_livraison, adresse }),
-        })
+        // Email de notification admin
+        const adminEmail = process.env.ADMIN_EMAIL
+        if (adminEmail) {
+          const lignesAdmin = articles.map((a: { nom: string; quantite: number; prix: number }) =>
+            `<tr><td style="padding:6px 10px;border-bottom:1px solid #e8e4d8;">${a.nom}</td><td style="padding:6px 10px;border-bottom:1px solid #e8e4d8;text-align:center;">${a.quantite}</td><td style="padding:6px 10px;border-bottom:1px solid #e8e4d8;text-align:right;">R$ ${(a.prix * a.quantite).toFixed(2)}</td></tr>`
+          ).join('')
+          const fraisLigne = frais_livraison > 0
+            ? `<tr><td colspan="2" style="padding:6px 10px;color:#888;">Frais de livraison</td><td style="padding:6px 10px;text-align:right;">R$ ${frais_livraison.toFixed(2)}</td></tr>`
+            : ''
+          await resend.emails.send({
+            from: 'La Ferme de Marie à Rio <contato@lafermedemarieario.com.br>',
+            to: adminEmail,
+            subject: `🛒 Nouvelle commande — ${prenom} ${nom} — R$ ${total.toFixed(2)}`,
+            html: `<!DOCTYPE html><html><body style="font-family:Georgia,serif;background:#F5F2E9;margin:0;padding:0;">
+<div style="max-width:520px;margin:24px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(74,93,78,0.1);">
+<div style="background:#4A5D4E;padding:24px;text-align:center;">
+<p style="margin:0;color:#fff;font-size:18px;font-weight:bold;">🛒 Nouvelle commande reçue</p>
+</div>
+<div style="padding:24px;">
+<p style="margin:0 0 4px;font-size:15px;color:#4A5D4E;font-weight:bold;">${prenom} ${nom}</p>
+<p style="margin:0 0 4px;font-size:13px;color:#888;">📧 ${email}</p>
+<p style="margin:0 0 4px;font-size:13px;color:#888;">📞 ${telephone}</p>
+<p style="margin:0 0 16px;font-size:13px;color:#888;">${mode_livraison === 'retrait' ? '🏡 Retrait' : `🛵 Livraison — ${adresse}`}</p>
+<table style="width:100%;border-collapse:collapse;font-size:13px;">
+<thead><tr style="background:#4A5D4E;color:#fff;"><th style="padding:6px 10px;text-align:left;">Produit</th><th style="padding:6px 10px;text-align:center;">Qté</th><th style="padding:6px 10px;text-align:right;">Montant</th></tr></thead>
+<tbody>${lignesAdmin}${fraisLigne}</tbody>
+<tfoot><tr><td colspan="2" style="padding:10px;font-weight:bold;color:#4A5D4E;">Total</td><td style="padding:10px;font-weight:bold;color:#4A5D4E;text-align:right;">R$ ${total.toFixed(2)}</td></tr></tfoot>
+</table>
+</div>
+<div style="background:#f8f6f0;padding:16px;text-align:center;border-top:1px solid #e8e4d8;">
+<p style="margin:0;font-size:12px;color:#888;">La Ferme de Marie à Rio · Rio de Janeiro</p>
+</div>
+</div></body></html>`,
+          })
+        }
       } catch (emailErr) {
         console.error('Erreur envoi email:', emailErr)
       }

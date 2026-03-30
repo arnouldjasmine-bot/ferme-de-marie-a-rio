@@ -56,6 +56,22 @@ function emailConfirmationHtml(opts: {
 </html>`
 }
 
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const supabase = createServiceClient()
+    const { error } = await supabase.from('orders').delete().eq('id', id)
+    if (error) throw new Error(error.message)
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error('Erreur suppression commande:', err)
+    return NextResponse.json({ ok: false, error: 'Erreur serveur' }, { status: 500 })
+  }
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

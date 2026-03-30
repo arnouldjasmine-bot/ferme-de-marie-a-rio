@@ -6,6 +6,7 @@ import BoutonLienPaiement from '@/components/admin/BoutonLienPaiement'
 import ComprovanteViewer from '@/components/admin/ComprovanteViewer'
 import Link from 'next/link'
 import BoutonRetour from '@/components/admin/BoutonRetour'
+import BoutonSupprimerCommande from '@/components/admin/BoutonSupprimerCommande'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,7 +43,10 @@ const STATUT_LABELS: Record<string, string> = {
 export default async function PageDetailCommande({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = createServiceClient()
-  const { data } = await supabase.from('orders').select('*').eq('id', id).single()
+  const [{ data }, { data: produits }] = await Promise.all([
+    supabase.from('orders').select('*').eq('id', id).single(),
+    supabase.from('products').select('id, nom, prix, unite').eq('actif', true).order('nom'),
+  ])
   if (!data) notFound()
   const c = data as Commande
 
@@ -86,6 +90,7 @@ export default async function PageDetailCommande({ params }: { params: Promise<{
         articles={c.articles ?? []}
         frais_livraison={c.frais_livraison ?? 0}
         mode_livraison={c.mode_livraison}
+        produits={produits ?? []}
       />
 
       {/* Statut livraison */}
@@ -99,6 +104,9 @@ export default async function PageDetailCommande({ params }: { params: Promise<{
       <div className="flex flex-col gap-3">
         {c.comprovante_url && <ComprovanteViewer url={c.comprovante_url} />}
         <BoutonLienPaiement id={c.id} telephone={c.telephone} locale={c.locale} />
+        <div className="mt-2">
+          <BoutonSupprimerCommande id={c.id} />
+        </div>
       </div>
     </div>
   )

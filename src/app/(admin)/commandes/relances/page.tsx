@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import Link from 'next/link'
+import BoutonRelanceIndividuel from '@/components/admin/BoutonRelanceIndividuel'
 
 type Commande = {
   id: string
@@ -12,6 +13,7 @@ type Commande = {
   paiement_statut: string
   livree_at: string | null
   locale: string
+  user_id: string | null
   created_at: string
 }
 
@@ -22,15 +24,6 @@ function joursDepuisLivraison(c: Commande): number {
   return Math.floor((Date.now() - dateRef.getTime()) / (1000 * 60 * 60 * 24))
 }
 
-function messageWhatsApp(c: Commande, telephone: string): string {
-  const pt = c.locale === 'pt-BR'
-  const msg = pt
-    ? `Olá ${c.prenom}, tudo bem? Passando para lembrar que o pagamento do seu pedido de R$ ${c.total.toFixed(2)} ainda está pendente. Pode me enviar o comprovante quando puder? Obrigada! 🌿`
-    : `Bonjour ${c.prenom}, j'espère que vous allez bien ! Je me permets de vous relancer concernant le paiement de votre commande de R$ ${c.total.toFixed(2)} qui est toujours en attente. Merci d'avance ! 🌿`
-  const tel = telephone.replace(/\D/g, '')
-  const base = tel.startsWith('55') ? tel : `55${tel}`
-  return `https://wa.me/${base}?text=${encodeURIComponent(msg)}`
-}
 
 export const dynamic = 'force-dynamic'
 
@@ -126,17 +119,14 @@ function CarteRelance({ c, retard }: { c: Commande; retard: boolean }) {
         📞 {c.telephone} · 📧 {c.email}
       </p>
 
-      <div className="flex flex-wrap gap-2">
-        <a
-          href={messageWhatsApp(c, c.telephone)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
-          style={{ backgroundColor: '#25D366' }}
-        >
-          📱 Relancer par WhatsApp
-        </a>
-      </div>
+      <BoutonRelanceIndividuel
+        commandeId={c.id}
+        userId={c.user_id}
+        telephone={c.telephone}
+        prenom={c.prenom}
+        total={c.total}
+        locale={c.locale}
+      />
     </div>
   )
 }

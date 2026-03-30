@@ -4,7 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { articles, adresse, adresse2, total } = body
+    const { articles, adresse, adresse2, total, frais_livraison } = body
 
     if (!articles || articles.length === 0) {
       return NextResponse.json({ ok: false, error: 'Aucun article' }, { status: 400 })
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
         comprovante_url: null,
         is_medrio: true,
         mode_livraison: 'livraison',
-        frais_livraison: 0,
+        frais_livraison: typeof frais_livraison === 'number' ? frais_livraison : 35,
         locale: 'pt-BR',
       })
       .select()
