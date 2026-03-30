@@ -83,27 +83,43 @@ export default async function PageAccueil({ params }: Props) {
   return (
     <div>
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden" style={{ minHeight: 'clamp(380px, 70vh, 520px)' }}>
+      <section className="relative overflow-hidden" style={{ minHeight: 'clamp(420px, 75svh, 600px)' }}>
         {/* Photo de fond */}
         <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/hero-ferme.jpg')" }} />
-        {/* Dégradé warm overlay */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(46,61,49,0.72) 0%, rgba(210,125,86,0.35) 100%)' }} />
+        {/* Dégradé warm overlay — plus sombre en haut pour lisibilité du logo */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(30,45,33,0.78) 0%, rgba(30,45,33,0.5) 55%, rgba(210,125,86,0.25) 100%)' }} />
 
-        <div className="relative z-10 flex flex-col items-center justify-center text-center px-5 py-12 md:py-24">
+        <div className="relative z-10 flex flex-col items-center justify-center text-center h-full px-5" style={{ minHeight: 'clamp(420px, 75svh, 600px)', paddingTop: '2rem', paddingBottom: '3.5rem' }}>
           {/* Logo principal blanc */}
-          <div className="mb-4 drop-shadow-lg">
-            <Image src="/logo.png" alt="Ferme de Marie à Rio" width={380} height={250} className="object-contain brightness-0 invert w-48 sm:w-72 md:w-96" priority />
+          <div className="drop-shadow-xl mb-3">
+            <Image
+              src="/logo.png"
+              alt="Ferme de Marie à Rio"
+              width={320}
+              height={210}
+              className="object-contain brightness-0 invert"
+              style={{ width: 'clamp(150px, 42vw, 260px)', height: 'auto' }}
+              priority
+            />
           </div>
+
+          {/* Séparateur décoratif */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-px bg-white/40" />
+            <span className="text-white/60 text-xs tracking-widest uppercase">✦</span>
+            <div className="w-8 h-px bg-white/40" />
+          </div>
+
           <p
-            className="mb-8 max-w-xs sm:max-w-md text-white/90"
-            style={{ fontFamily: 'var(--font-dancing)', fontSize: 'clamp(1.2rem, 4vw, 1.6rem)' }}
+            className="mb-7 text-white/90 max-w-xs"
+            style={{ fontFamily: 'var(--font-dancing)', fontSize: 'clamp(1.1rem, 5vw, 1.5rem)', lineHeight: 1.4 }}
           >
             {sousTitre}
           </p>
           <Link
             href={`/${locale}/produits`}
-            className="px-7 py-3 rounded-full font-semibold text-base transition-all hover:scale-105 hover:shadow-lg"
-            style={{ backgroundColor: 'var(--terracotta)', color: '#fff', fontFamily: 'var(--font-dm-sans)' }}
+            className="px-8 py-3.5 rounded-full font-semibold text-sm transition-all hover:scale-105 hover:shadow-xl active:scale-95"
+            style={{ backgroundColor: 'var(--terracotta)', color: '#fff', fontFamily: 'var(--font-dm-sans)', letterSpacing: '0.02em', boxShadow: '0 4px 20px rgba(193,95,55,0.45)' }}
           >
             {t('voirProduits')}
           </Link>

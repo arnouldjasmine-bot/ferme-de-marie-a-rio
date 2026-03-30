@@ -1,19 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-
-/**
- * Normalise un numéro de téléphone pour l'API wa.me.
- * wa.me attend le numéro complet sans + ni espaces : ex. 5521999999999
- * On auto-ajoute l'indicatif pays si le client a oublié de le saisir.
- */
-function formatTelWhatsApp(tel: string): string {
-  // Le numéro est stocké avec l'indicatif pays (ajouté au moment de la commande)
-  // wa.me attend juste les chiffres sans + ni espaces : ex. 5521999999999
-  const digits = tel.replace(/\D/g, '')
-  // Si le numéro commence par 0 (cas rare de saisie sans indicatif), on retire le 0
-  return digits.startsWith('0') ? digits.slice(1) : digits
-}
+import { normaliserTelWhatsApp } from '@/lib/tel'
 
 function getMessageWhatsApp(lien: string, locale?: string): string {
   if (locale === 'fr') {
@@ -51,7 +39,7 @@ export default function BoutonLienPaiement({
   function ouvrirWhatsApp() {
     const lien = getLien()
     const message = getMessageWhatsApp(lien, locale)
-    const numero = telephone ? formatTelWhatsApp(telephone) : ''
+    const numero = telephone ? normaliserTelWhatsApp(telephone) : ''
     const url = numero
       ? `https://wa.me/${numero}?text=${message}`
       : `https://wa.me/?text=${message}`

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { normaliserTelWhatsApp } from '@/lib/tel'
 
 type Props = {
   commandeId: string
@@ -16,8 +17,7 @@ function messageWhatsApp(prenom: string, total: number, telephone: string, local
   const msg = pt
     ? `Olá ${prenom}, tudo bem? Passando para lembrar que o pagamento do seu pedido de R$ ${total.toFixed(2)} ainda está pendente. Pode me enviar o comprovante quando puder? Obrigada! 🌿`
     : `Bonjour ${prenom}, j'espère que vous allez bien ! Je me permets de vous relancer concernant le paiement de votre commande de R$ ${total.toFixed(2)} qui est toujours en attente. Merci d'avance ! 🌿`
-  const tel = telephone.replace(/\D/g, '')
-  const base = tel.startsWith('55') ? tel : `55${tel}`
+  const base = normaliserTelWhatsApp(telephone)
   return `https://wa.me/${base}?text=${encodeURIComponent(msg)}`
 }
 
