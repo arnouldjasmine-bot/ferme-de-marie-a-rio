@@ -17,10 +17,10 @@ type Commande = {
   created_at: string
 }
 
-function joursDepuisLivraison(c: Commande): number {
+function joursSansRegler(c: Commande): number {
   const dateRef = c.livree_at
     ? new Date(c.livree_at)
-    : new Date(new Date(c.created_at).getTime() + 5 * 24 * 60 * 60 * 1000)
+    : new Date(c.created_at)
   return Math.floor((Date.now() - dateRef.getTime()) / (1000 * 60 * 60 * 24))
 }
 
@@ -32,13 +32,14 @@ export default async function PageRelances() {
   const { data } = await supabase
     .from('orders')
     .select('*')
-    .eq('statut', 'livree')
+    .in('statut', ['confirmee', 'livree'])
     .eq('paiement_statut', 'en_attente')
+    .eq('is_medrio', false)
     .order('created_at', { ascending: false })
 
   const toutes: Commande[] = data ?? []
-  const relances = toutes.filter(c => joursDepuisLivraison(c) > 7)
-  const enAttente = toutes.filter(c => joursDepuisLivraison(c) <= 7)
+  const relances = toutes.filter(c => joursSansRegler(c) > 3)
+  const enAttente = toutes.filter(c => joursSansRegler(c) <= 3)
 
   return (
     <div className="max-w-2xl">
@@ -62,7 +63,7 @@ export default async function PageRelances() {
       {relances.length > 0 && (
         <div className="mb-8">
           <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: '#D27D56' }}>
-            ⚠️ En retard — plus d'une semaine ({relances.length})
+            ⚠️ À relancer — plus de 3 jours sans paiement ({relances.length})
           </p>
           <div className="flex flex-col gap-3">
             {relances.map(c => (
@@ -76,7 +77,7 @@ export default async function PageRelances() {
       {enAttente.length > 0 && (
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: 'var(--couleur-texte-doux)' }}>
-            Livrées récemment — paiement en attente ({enAttente.length})
+            Récentes — paiement en attente ({enAttente.length})
           </p>
           <div className="flex flex-col gap-3">
             {enAttente.map(c => (
@@ -90,7 +91,7 @@ export default async function PageRelances() {
 }
 
 function CarteRelance({ c, retard }: { c: Commande; retard: boolean }) {
-  const jours = joursDepuisLivraison(c)
+  const jours = joursSansRegler(c)
 
   return (
     <div
@@ -107,7 +108,7 @@ function CarteRelance({ c, retard }: { c: Commande; retard: boolean }) {
             {c.prenom} {c.nom}
           </Link>
           <p className="text-xs mt-0.5" style={{ color: 'var(--couleur-texte-doux)' }}>
-            {jours} jour{jours > 1 ? 's' : ''} depuis la livraison
+            {jours} jour{jours > 1 ? 's' : ''} sans paiement · {c.statut === 'livree' ? 'Livrée' : 'Confirmée'}
           </p>
         </div>
         <p className="font-bold text-sm shrink-0" style={{ color: 'var(--couleur-primaire-fonce)' }}>

@@ -14,7 +14,9 @@ export const CATEGORIES: { value: Categorie; labelFr: string; labelPt: string }[
 export interface Produit {
   id: string
   nom: string
+  nom_pt: string | null
   description: string | null
+  description_pt: string | null
   prix: number
   unite: string
   stock: number

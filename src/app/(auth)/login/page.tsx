@@ -108,6 +108,13 @@ function LoginForm() {
             <p className="text-sm text-center" style={{ color: 'var(--couleur-erreur)' }}>{erreur}</p>
           )}
 
+          <p className="text-xs text-center" style={{ color: 'var(--couleur-texte-doux)' }}>
+            Mot de passe oublié ?{' '}
+            <a href="mailto:arnould.jasmine@gmail.com" className="underline hover:opacity-80">
+              Contacter Jasmine
+            </a>
+          </p>
+
           <button
             type="submit"
             disabled={chargement}

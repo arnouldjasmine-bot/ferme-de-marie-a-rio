@@ -43,6 +43,14 @@ export default function EditionCommande({ id, articles: initial, frais_livraison
     setAjouterOuvert(false)
   }
 
+  function modifierPrix(i: number, val: number) {
+    setArticles(prev => {
+      const next = [...prev]
+      next[i] = { ...next[i], prix: Math.max(0, val) }
+      return next
+    })
+  }
+
   function modifierQte(i: number, delta: number) {
     setArticles(prev => {
       const next = [...prev]
@@ -75,10 +83,23 @@ export default function EditionCommande({ id, articles: initial, frais_livraison
       ) : (
         <div className="flex flex-col gap-2 mb-3">
           {articles.map((a, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" style={{ color: 'var(--couleur-texte)' }}>{a.nom}</p>
-                <p className="text-xs" style={{ color: 'var(--couleur-texte-doux)' }}>R$ {a.prix.toFixed(2)} / unité</p>
+            <div key={i} className="flex flex-col gap-1.5 py-2" style={{ borderBottom: '1px solid var(--couleur-bordure)' }}>
+              <p className="text-sm font-medium" style={{ color: 'var(--couleur-texte)' }}>{a.nom}</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Prix unitaire éditable */}
+                <div className="flex items-center gap-1">
+                  <span className="text-xs" style={{ color: 'var(--couleur-texte-doux)' }}>R$</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.5}
+                    value={a.prix}
+                    onChange={e => modifierPrix(i, parseFloat(e.target.value) || 0)}
+                    className="w-20 text-sm text-right border rounded-lg px-2 py-1 outline-none"
+                    style={{ borderColor: 'var(--couleur-bordure)', color: 'var(--couleur-texte)' }}
+                  />
+                  <span className="text-xs" style={{ color: 'var(--couleur-texte-doux)' }}>/u</span>
+                </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button

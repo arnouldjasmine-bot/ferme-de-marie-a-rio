@@ -13,7 +13,9 @@ type Props = {
 export default function FormulaireProduit({ produit }: Props) {
   const router = useRouter()
   const [nom, setNom] = useState(produit?.nom ?? '')
+  const [nomPt, setNomPt] = useState(produit?.nom_pt ?? '')
   const [description, setDescription] = useState(produit?.description ?? '')
+  const [descriptionPt, setDescriptionPt] = useState(produit?.description_pt ?? '')
   const [prix, setPrix] = useState(produit?.prix?.toString() ?? '')
   const [unite, setUnite] = useState(produit?.unite ?? '')
   const [stock, setStock] = useState(produit?.stock?.toString() ?? '')
@@ -72,7 +74,9 @@ export default function FormulaireProduit({ produit }: Props) {
 
       const body = {
         nom: nom.trim(),
+        nom_pt: nomPt.trim() || null,
         description: description.trim() || null,
+        description_pt: descriptionPt.trim() || null,
         prix: parseFloat(prix),
         unite: unite.trim(),
         stock: parseInt(stock),
@@ -134,16 +138,44 @@ export default function FormulaireProduit({ produit }: Props) {
         </div>
         <input ref={inputImageRef} type="file" accept="image/*" className="hidden" onChange={handleImage} />
 
-        {/* Nom */}
-        <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>Nom <span style={{ color: 'var(--couleur-erreur)' }}>*</span></label>
-          <input type="text" value={nom} onChange={e => setNom(e.target.value)} className="w-full border rounded-xl px-3 py-2.5 text-sm outline-none" style={{ borderColor: 'var(--couleur-bordure)' }} placeholder="Ex : Tomates cerises" />
-        </div>
+        {/* Nom + Description bilingues */}
+        <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--couleur-bordure)' }}>
+          {/* FR */}
+          <div className="px-4 pt-3 pb-4" style={{ backgroundColor: 'var(--couleur-fond-carte)' }}>
+            <p className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ color: 'var(--vert-sauge-fonce)' }}>
+              🇫🇷 Français
+            </p>
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>Nom <span style={{ color: 'var(--couleur-erreur)' }}>*</span></label>
+                <input type="text" value={nom} onChange={e => setNom(e.target.value)} className="w-full border rounded-xl px-3 py-2 text-sm outline-none" style={{ borderColor: 'var(--couleur-bordure)' }} placeholder="Ex : Confiture de fruits" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>Description</label>
+                <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} className="w-full border rounded-xl px-3 py-2 text-sm outline-none resize-none" style={{ borderColor: 'var(--couleur-bordure)' }} placeholder="Description courte..." />
+              </div>
+            </div>
+          </div>
 
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>Description</label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full border rounded-xl px-3 py-2.5 text-sm outline-none resize-none" style={{ borderColor: 'var(--couleur-bordure)' }} placeholder="Description courte..." />
+          {/* Séparateur */}
+          <div style={{ height: 1, backgroundColor: 'var(--couleur-bordure)' }} />
+
+          {/* PT */}
+          <div className="px-4 pt-3 pb-4" style={{ backgroundColor: '#f8f6f0' }}>
+            <p className="text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-1.5" style={{ color: '#4A5D4E' }}>
+              🇧🇷 Português
+            </p>
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>Nome</label>
+                <input type="text" value={nomPt} onChange={e => setNomPt(e.target.value)} className="w-full border rounded-xl px-3 py-2 text-sm outline-none" style={{ borderColor: 'var(--couleur-bordure)' }} placeholder="Ex : Geléia de frutas" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>Descrição</label>
+                <textarea value={descriptionPt} onChange={e => setDescriptionPt(e.target.value)} rows={2} className="w-full border rounded-xl px-3 py-2 text-sm outline-none resize-none" style={{ borderColor: 'var(--couleur-bordure)' }} placeholder="Descrição curta..." />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Catégorie */}

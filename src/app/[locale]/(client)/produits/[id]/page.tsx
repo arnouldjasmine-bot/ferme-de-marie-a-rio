@@ -52,12 +52,12 @@ export default async function PageProduit({ params }: Props) {
         )}
 
         <h1 className="text-2xl font-bold leading-tight" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
-          {produit.nom}
+          {locale === 'pt-BR' && produit.nom_pt ? produit.nom_pt : produit.nom}
         </h1>
 
-        {produit.description && (
+        {(locale === 'pt-BR' ? (produit.description_pt || produit.description) : produit.description) && (
           <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>
-            {produit.description}
+            {locale === 'pt-BR' ? (produit.description_pt || produit.description) : produit.description}
           </p>
         )}
 

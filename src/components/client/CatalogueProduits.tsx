@@ -163,7 +163,7 @@ export default function CatalogueProduits({ produits, locale, categories }: Prop
               {/* Contenu */}
               <div className="p-3 flex flex-col flex-1 gap-1.5">
                 <p className="font-semibold text-sm leading-tight" style={{ color: 'var(--couleur-texte)' }}>
-                  {produit.nom}
+                  {locale === 'pt-BR' && produit.nom_pt ? produit.nom_pt : produit.nom}
                 </p>
                 <div className="flex items-baseline gap-1 mt-auto pt-1">
                   <span className="font-bold text-sm" style={{ color: 'var(--couleur-primaire-fonce)' }}>
