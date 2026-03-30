@@ -85,16 +85,24 @@ export default function FormulaireProduit({ produit }: Props) {
         actif,
       }
 
+      let res: Response
       if (produit) {
-        await fetch('/api/produits', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: produit.id, ...body }) })
+        res = await fetch('/api/produits', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: produit.id, ...body }) })
       } else {
-        await fetch('/api/produits', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        res = await fetch('/api/produits', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      }
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({})) as { error?: string }
+        setErreur(json.error ?? `Erreur serveur (${res.status}). Vérifiez que les colonnes nom_pt et description_pt existent dans Supabase (migration 009).`)
+        setChargement(false)
+        return
       }
 
       router.push('/produits')
       router.refresh()
     } catch {
-      setErreur('Erreur lors de la sauvegarde.')
+      setErreur('Erreur lors de la sauvegarde. Vérifiez votre connexion.')
     }
     setChargement(false)
   }
