@@ -38,8 +38,22 @@ export default async function PageRelances() {
     .order('created_at', { ascending: false })
 
   const toutes: Commande[] = data ?? []
-  const relances = toutes.filter(c => joursSansRegler(c) > 3)
-  const enAttente = toutes.filter(c => joursSansRegler(c) <= 3)
+
+  // Livrées (non payées) — priorité absolue, compteur depuis livree_at
+  const livreesNonPayees = toutes
+    .filter(c => c.statut === 'livree')
+    .sort((a, b) => joursSansRegler(b) - joursSansRegler(a))
+
+  // Confirmées en retard > 3 jours
+  const confirmeesRetard = toutes
+    .filter(c => c.statut === 'confirmee' && joursSansRegler(c) > 3)
+    .sort((a, b) => joursSansRegler(b) - joursSansRegler(a))
+
+  // Confirmées récentes ≤ 3 jours
+  const confirmeesRecentes = toutes
+    .filter(c => c.statut === 'confirmee' && joursSansRegler(c) <= 3)
+
+  const total = toutes.length
 
   return (
     <div className="max-w-2xl">
@@ -52,36 +66,50 @@ export default async function PageRelances() {
         </h1>
       </div>
 
-      {relances.length === 0 && enAttente.length === 0 && (
+      {total === 0 && (
         <div className="rounded-xl p-12 text-center" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
           <p className="text-2xl mb-2">🎉</p>
           <p style={{ color: 'var(--couleur-texte-doux)' }}>Tous les paiements sont à jour !</p>
         </div>
       )}
 
-      {/* En retard > 7 jours */}
-      {relances.length > 0 && (
+      {/* 🔴 PRIORITÉ — Livrées non payées */}
+      {livreesNonPayees.length > 0 && (
         <div className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: '#D27D56' }}>
-            ⚠️ À relancer — plus de 3 jours sans paiement ({relances.length})
+          <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: '#B91C1C' }}>
+            🔴 Livrées non payées — urgent ({livreesNonPayees.length})
           </p>
           <div className="flex flex-col gap-3">
-            {relances.map(c => (
-              <CarteRelance key={c.id} c={c} retard />
+            {livreesNonPayees.map(c => (
+              <CarteRelance key={c.id} c={c} priorite="urgente" />
             ))}
           </div>
         </div>
       )}
 
-      {/* En attente récents */}
-      {enAttente.length > 0 && (
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: 'var(--couleur-texte-doux)' }}>
-            Récentes — paiement en attente ({enAttente.length})
+      {/* 🟠 Confirmées en retard > 3 jours */}
+      {confirmeesRetard.length > 0 && (
+        <div className="mb-8">
+          <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: '#D27D56' }}>
+            ⚠️ À relancer — plus de 3 jours sans paiement ({confirmeesRetard.length})
           </p>
           <div className="flex flex-col gap-3">
-            {enAttente.map(c => (
-              <CarteRelance key={c.id} c={c} retard={false} />
+            {confirmeesRetard.map(c => (
+              <CarteRelance key={c.id} c={c} priorite="retard" />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Confirmées récentes */}
+      {confirmeesRecentes.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: 'var(--couleur-texte-doux)' }}>
+            Récentes — paiement en attente ({confirmeesRecentes.length})
+          </p>
+          <div className="flex flex-col gap-3">
+            {confirmeesRecentes.map(c => (
+              <CarteRelance key={c.id} c={c} priorite="normale" />
             ))}
           </div>
         </div>
@@ -90,25 +118,34 @@ export default async function PageRelances() {
   )
 }
 
-function CarteRelance({ c, retard }: { c: Commande; retard: boolean }) {
+type Priorite = 'urgente' | 'retard' | 'normale'
+
+function CarteRelance({ c, priorite }: { c: Commande; priorite: Priorite }) {
   const jours = joursSansRegler(c)
+
+  const styles: Record<Priorite, { bg: string; border: string; badge: string }> = {
+    urgente: { bg: '#fee2e2', border: '2px solid #B91C1C', badge: '#B91C1C' },
+    retard:  { bg: '#f5c6b8', border: '2px solid #C0522A', badge: '#C0522A' },
+    normale: { bg: 'var(--couleur-fond-carte)', border: 'none', badge: 'var(--couleur-texte-doux)' },
+  }
+  const s = styles[priorite]
+
+  const labelJours = c.statut === 'livree'
+    ? `${jours} jour${jours > 1 ? 's' : ''} depuis la livraison`
+    : `${jours} jour${jours > 1 ? 's' : ''} sans paiement`
 
   return (
     <div
       className="rounded-xl p-4"
-      style={{
-        backgroundColor: retard ? '#f5c6b8' : 'var(--couleur-fond-carte)',
-        boxShadow: 'var(--ombre-carte)',
-        border: retard ? '2px solid #C0522A' : 'none',
-      }}
+      style={{ backgroundColor: s.bg, boxShadow: 'var(--ombre-carte)', border: s.border }}
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <Link href={`/commandes/${c.id}`} className="font-bold text-sm hover:underline" style={{ color: 'var(--couleur-primaire-fonce)' }}>
             {c.prenom} {c.nom}
           </Link>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--couleur-texte-doux)' }}>
-            {jours} jour{jours > 1 ? 's' : ''} sans paiement · {c.statut === 'livree' ? 'Livrée' : 'Confirmée'}
+          <p className="text-xs mt-0.5 font-medium" style={{ color: s.badge }}>
+            {labelJours} · {c.statut === 'livree' ? '✅ Livrée' : 'Confirmée'}
           </p>
         </div>
         <p className="font-bold text-sm shrink-0" style={{ color: 'var(--couleur-primaire-fonce)' }}>

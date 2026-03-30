@@ -101,7 +101,7 @@ export default function EditionCommande({ id, articles: initial, frais_livraison
                   <span className="text-xs" style={{ color: 'var(--couleur-texte-doux)' }}>/u</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => modifierQte(i, -1)}
                   className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-base transition-opacity hover:opacity-70"
@@ -117,10 +117,10 @@ export default function EditionCommande({ id, articles: initial, frais_livraison
                 >
                   +
                 </button>
+                <span className="text-sm font-semibold ml-2" style={{ color: 'var(--couleur-primaire-fonce)' }}>
+                  = R$ {(a.prix * a.quantite).toFixed(2)}
+                </span>
               </div>
-              <span className="text-sm font-semibold w-20 text-right shrink-0" style={{ color: 'var(--couleur-primaire-fonce)' }}>
-                R$ {(a.prix * a.quantite).toFixed(2)}
-              </span>
             </div>
           ))}
         </div>
