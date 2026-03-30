@@ -109,9 +109,8 @@ function LoginForm() {
           )}
 
           <p className="text-xs text-center" style={{ color: 'var(--couleur-texte-doux)' }}>
-            Mot de passe oublié ?{' '}
-            <a href="mailto:arnould.jasmine@gmail.com" className="underline hover:opacity-80">
-              Contacter Jasmine
+            <a href="/login/mot-de-passe-oublie" className="underline hover:opacity-80">
+              Mot de passe oublié ?
             </a>
           </p>
 
