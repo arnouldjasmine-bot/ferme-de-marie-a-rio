@@ -3,6 +3,7 @@ import BottomNavClient from '@/components/client/BottomNavClient'
 import AuthProvider from '@/components/client/AuthProvider'
 import CapacitorPushInit from '@/components/client/CapacitorPushInit'
 import PageTransition from '@/components/client/PageTransition'
+import OnboardingGuard from '@/components/client/OnboardingGuard'
 import { isAppMode } from '@/lib/is-app'
 
 type Props = { children: React.ReactNode; params: Promise<{ locale: string }> }
@@ -14,6 +15,7 @@ export default async function ClientLayout({ children, params }: Props) {
   return (
     <AuthProvider>
       <CapacitorPushInit />
+      <OnboardingGuard />
       <PageTransition />
       <div className="min-h-screen flex flex-col">
 
