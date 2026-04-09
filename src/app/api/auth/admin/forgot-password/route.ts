@@ -4,13 +4,9 @@ import { Resend } from 'resend'
 import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
-  const { email } = await request.json()
-
   const adminEmail = process.env.ADMIN_EMAIL ?? 'admin@ferme-marie.test'
-  if (!email || email.trim().toLowerCase() !== adminEmail.toLowerCase()) {
-    // On répond toujours OK pour ne pas révéler si l'email existe
-    return NextResponse.json({ ok: true })
-  }
+  // On parse le body mais on n'en a plus besoin (envoi direct à l'admin)
+  try { await request.json() } catch { /* body vide ok */ }
 
   const supabase = createServiceClient()
   const resend = new Resend(process.env.RESEND_API_KEY)

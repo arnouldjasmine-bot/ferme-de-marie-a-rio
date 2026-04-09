@@ -8,6 +8,7 @@ function LoginForm() {
   const [chargement, setChargement] = useState(false)
   const [erreur, setErreur] = useState(searchParams.get('erreur') ? 'Email ou mot de passe incorrect.' : '')
   const [voirMdp, setVoirMdp] = useState(false)
+  const [envoyerMdp, setEnvoyerMdp] = useState<'idle' | 'loading' | 'sent'>('idle')
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -109,9 +110,26 @@ function LoginForm() {
           )}
 
           <p className="text-xs text-center" style={{ color: 'var(--couleur-texte-doux)' }}>
-            <a href="/login/mot-de-passe-oublie" className="underline hover:opacity-80">
-              Mot de passe oublié ?
-            </a>
+            {envoyerMdp === 'sent' ? (
+              <span style={{ color: 'var(--couleur-succes, #4A5D4E)' }}>📧 Email envoyé !</span>
+            ) : (
+              <button
+                type="button"
+                disabled={envoyerMdp === 'loading'}
+                onClick={async () => {
+                  setEnvoyerMdp('loading')
+                  await fetch('/api/auth/admin/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({}),
+                  })
+                  setEnvoyerMdp('sent')
+                }}
+                className="underline hover:opacity-80 disabled:opacity-50"
+              >
+                {envoyerMdp === 'loading' ? 'Envoi…' : 'Mot de passe oublié ?'}
+              </button>
+            )}
           </p>
 
           <button

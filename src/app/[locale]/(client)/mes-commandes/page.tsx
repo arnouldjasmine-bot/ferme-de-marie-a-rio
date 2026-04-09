@@ -8,7 +8,7 @@ import FormulaireAvis from '@/components/client/FormulaireAvis'
 import EtoilesDisplay from '@/components/client/EtoilesDisplay'
 import BoutonNotifications from '@/components/client/BoutonNotifications'
 
-type Article = { nom: string; quantite: number; prix: number }
+type Article = { nom: string; quantite: number; prix: number; unite?: string }
 type Commande = {
   id: string
   prenom: string
@@ -57,6 +57,10 @@ export default function PageMesCommandes() {
   const [onglet, setOnglet]       = useState<'en_cours' | 'passees'>('en_cours')
   const [avisOuvertId, setAvisOuvertId] = useState<string | null>(null)
   const [avisParCommande, setAvisParCommande] = useState<Record<string, AvisResume>>({})
+  const [modifId, setModifId]     = useState<string | null>(null)
+  const [modifArticles, setModifArticles] = useState<Article[]>([])
+  const [modifEnvoi, setModifEnvoi] = useState(false)
+  const [modifErreur, setModifErreur] = useState('')
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -259,6 +263,114 @@ export default function PageMesCommandes() {
                   ))}
                   <p className="text-xs mt-2" style={{ color: 'var(--couleur-texte-doux)' }}>📍 {c.adresse}</p>
                 </div>
+
+                {/* Modification inline (en_attente) */}
+                {c.statut === 'en_attente' && user && (
+                  modifId === c.id ? (
+                    <div className="px-4 pb-4">
+                      <p className="text-xs font-semibold mb-2" style={{ color: 'var(--vert-sauge-fonce)' }}>
+                        {pt ? 'Modificar pedido' : 'Modifier la commande'}
+                      </p>
+                      {modifArticles.map((a, i) => (
+                        <div key={i} className="flex items-center justify-between gap-2 py-1.5 text-sm border-b" style={{ borderColor: 'var(--couleur-bordure)' }}>
+                          <span className="flex-1 truncate" style={{ color: 'var(--couleur-texte)' }}>{a.nom}</span>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setModifArticles(prev => {
+                                const next = [...prev]
+                                next[i] = { ...next[i], quantite: Math.max(0, next[i].quantite - 1) }
+                                return next
+                              })}
+                              className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-base border"
+                              style={{ borderColor: 'var(--couleur-bordure)', color: 'var(--vert-sauge-fonce)' }}
+                            >−</button>
+                            <span className="w-5 text-center font-semibold" style={{ color: a.quantite === 0 ? '#c0392b' : 'var(--couleur-texte)' }}>
+                              {a.quantite}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setModifArticles(prev => {
+                                const next = [...prev]
+                                next[i] = { ...next[i], quantite: next[i].quantite + 1 }
+                                return next
+                              })}
+                              className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-base border"
+                              style={{ borderColor: 'var(--couleur-bordure)', color: 'var(--vert-sauge-fonce)' }}
+                            >+</button>
+                            {a.quantite === 0 && (
+                              <span className="text-xs ml-1" style={{ color: '#c0392b' }}>
+                                {pt ? '(remover)' : '(retiré)'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {modifErreur && (
+                        <p className="text-xs mt-2" style={{ color: '#c0392b' }}>{modifErreur}</p>
+                      )}
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          type="button"
+                          disabled={modifEnvoi}
+                          onClick={async () => {
+                            setModifErreur('')
+                            const artFiltres = modifArticles.filter(a => a.quantite > 0)
+                            if (artFiltres.length === 0) {
+                              setModifErreur(pt ? 'Selecione ao menos um produto.' : 'Sélectionnez au moins un produit.')
+                              return
+                            }
+                            setModifEnvoi(true)
+                            const { data: { session } } = await supabase.auth.getSession()
+                            const res = await fetch(`/api/mes-commandes/${c.id}`, {
+                              method: 'PATCH',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${session?.access_token ?? ''}`,
+                              },
+                              body: JSON.stringify({ articles: modifArticles }),
+                            })
+                            const data = await res.json()
+                            setModifEnvoi(false)
+                            if (data.ok) {
+                              setModifId(null)
+                              chargerParAuth()
+                            } else {
+                              setModifErreur(data.error ?? (pt ? 'Erro ao salvar.' : 'Erreur lors de la sauvegarde.'))
+                            }
+                          }}
+                          className="flex-1 py-2 rounded-full text-white text-sm font-semibold disabled:opacity-50"
+                          style={{ backgroundColor: 'var(--vert-sauge-fonce)' }}
+                        >
+                          {modifEnvoi ? '…' : (pt ? 'Salvar' : 'Enregistrer')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setModifId(null); setModifErreur('') }}
+                          className="px-4 py-2 rounded-full text-sm border"
+                          style={{ color: 'var(--couleur-texte-doux)', borderColor: 'var(--couleur-bordure)' }}
+                        >
+                          {pt ? 'Cancelar' : 'Annuler'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="px-4 pb-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setModifId(c.id)
+                          setModifArticles(c.articles.map(a => ({ ...a })))
+                          setModifErreur('')
+                        }}
+                        className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium border transition-opacity hover:opacity-80"
+                        style={{ color: 'var(--vert-sauge-fonce)', borderColor: 'var(--couleur-bordure)' }}
+                      >
+                        ✏️ {pt ? 'Modificar pedido' : 'Modifier la commande'}
+                      </button>
+                    </div>
+                  )
+                )}
 
                 {/* Actions */}
                 <div className="px-4 pb-4 flex flex-col gap-2">

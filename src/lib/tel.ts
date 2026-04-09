@@ -26,6 +26,7 @@ export function normaliserTelWhatsApp(tel: string): string {
   }
 
   // Cas 3 : numéro sans indicatif → présume brésilien, ajoute 55
-  const digits = original.replace(/\D/g, '')
+  // Retirer le 0 initial si présent (format local)
+  const digits = original.replace(/\D/g, '').replace(/^0/, '')
   return digits.startsWith('55') ? digits : `55${digits}`
 }

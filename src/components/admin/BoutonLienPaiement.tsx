@@ -27,7 +27,9 @@ export default function BoutonLienPaiement({
   const [copie, setCopie] = useState(false)
 
   function getLien() {
-    return `${window.location.origin}/payer/${id}`
+    // Toujours utiliser le domaine de production pour que le client puisse ouvrir le lien
+    const base = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin
+    return `${base}/payer/${id}`
   }
 
   function copierLien() {

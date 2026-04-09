@@ -97,6 +97,23 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
       setErreur(tErr('champsRequis'))
       return
     }
+
+    // Validation longueur numéro de téléphone selon pays
+    const telDigitsValidation = telephone.replace(/\D/g, '').replace(/^0/, '')
+    const longueurMin: Record<string, number> = {
+      '+55': 10, // Brésil : indicatif région (2) + numéro (8 ou 9) = min 10
+      '+33': 9,  // France : 9 chiffres sans le 0 initial
+      '+351': 9, // Portugal : 9 chiffres
+      '+1': 10,  // USA/Canada : 10 chiffres
+    }
+    const minDigits = longueurMin[paysSelectionne.code] ?? 8
+    if (telDigitsValidation.length < minDigits) {
+      setErreur(pt
+        ? `Número de telefone inválido. Verifique e tente novamente.`
+        : `Numéro de téléphone invalide. Vérifiez et réessayez.`)
+      return
+    }
+
     if (mode === 'livraison' && !adresseValide) {
       setErreur(pt
         ? 'Por favor, selecione um endereço válido nas sugestões.'
@@ -113,7 +130,8 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
     setChargement(true)
     try {
       // Construire le numéro complet avec indicatif pays
-      const telDigits = telephone.replace(/\D/g, '')
+      // Retirer le 0 initial si présent (format local → format international)
+      const telDigits = telephone.replace(/\D/g, '').replace(/^0/, '')
       const telephoneComplet = paysSelectionne.code + telDigits
 
       const data = new FormData()
