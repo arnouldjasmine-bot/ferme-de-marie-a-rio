@@ -30,7 +30,7 @@ export default async function PageAccueil({ params }: Props) {
       .eq('actif', true)
       .gt('stock', 0)
       .order('created_at', { ascending: false })
-      .limit(6),
+      .limit(8),
     supabase
       .from('page_content')
       .select('cle, valeur_fr, valeur_pt'),
@@ -39,10 +39,9 @@ export default async function PageAccueil({ params }: Props) {
       .select('id, user_id, note, commentaire')
       .eq('approuve', true)
       .order('created_at', { ascending: false })
-      .limit(3),
+      .limit(6),
   ])
 
-  // Récupérer les prénoms pour les avis
   const avisBase = (avisRaw ?? []) as { id: string; user_id: string; note: number; commentaire: string | null }[]
   const avisUserIds = [...new Set(avisBase.map(a => a.user_id).filter(Boolean))]
   const avisProfilesMap: Record<string, { prenom: string; nom: string }> = {}
@@ -82,233 +81,245 @@ export default async function PageAccueil({ params }: Props) {
 
   return (
     <div>
-      {/* ── Hero ── */}
-      <section className="relative overflow-hidden" style={{ minHeight: 'clamp(360px, 62svh, 580px)' }}>
-        {/* Photo de fond */}
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/hero-ferme.jpg')" }} />
-        {/* Dégradé warm overlay */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(30,45,33,0.80) 0%, rgba(30,45,33,0.52) 55%, rgba(210,125,86,0.20) 100%)' }} />
 
-        <div className="relative z-10 flex flex-col items-center justify-center text-center h-full px-5"
-          style={{ minHeight: 'clamp(360px, 62svh, 580px)', paddingTop: '1.5rem', paddingBottom: '3rem' }}>
-          {/* Logo principal blanc */}
-          <div className="drop-shadow-xl mb-2">
+      {/* ── Hero ── */}
+      <section className="relative overflow-hidden" style={{ minHeight: 'clamp(320px, 58svh, 520px)' }}>
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/hero-ferme.jpg')" }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, rgba(20,35,23,0.82) 0%, rgba(30,45,33,0.55) 60%, rgba(210,125,86,0.18) 100%)' }} />
+
+        <div
+          className="relative z-10 flex flex-col items-center justify-center text-center px-5"
+          style={{ minHeight: 'clamp(320px, 58svh, 520px)', paddingTop: '2rem', paddingBottom: '4rem' }}
+        >
+          <div className="drop-shadow-xl mb-3">
             <Image
               src="/logo.png"
               alt="Ferme de Marie à Rio"
               width={300}
               height={200}
               className="object-contain brightness-0 invert"
-              style={{ width: 'clamp(130px, 38vw, 220px)', height: 'auto' }}
+              style={{ width: 'clamp(110px, 34vw, 190px)', height: 'auto' }}
               priority
             />
           </div>
 
-          {/* Séparateur décoratif */}
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-px bg-white/40" />
-            <span className="text-white/60 text-xs tracking-widest">✦</span>
-            <div className="w-8 h-px bg-white/40" />
-          </div>
-
           <p
-            className="mb-6 text-white/90 max-w-xs"
-            style={{ fontFamily: 'var(--font-dancing)', fontSize: 'clamp(1rem, 4.5vw, 1.4rem)', lineHeight: 1.4 }}
+            className="mb-5 text-white/85 max-w-xs"
+            style={{ fontFamily: 'var(--font-dancing)', fontSize: 'clamp(1rem, 4vw, 1.3rem)', lineHeight: 1.5 }}
           >
             {sousTitre}
           </p>
+
           <Link
             href={`/${locale}/produits`}
-            className="px-7 py-3 rounded-full font-semibold text-sm transition-all hover:scale-105 hover:shadow-xl active:scale-95"
-            style={{ backgroundColor: 'var(--terracotta)', color: '#fff', fontFamily: 'var(--font-dm-sans)', letterSpacing: '0.02em', boxShadow: '0 4px 20px rgba(193,95,55,0.45)' }}
+            className="px-6 py-2.5 rounded-full font-semibold text-sm transition-all active:scale-95"
+            style={{
+              backgroundColor: 'var(--terracotta)',
+              color: '#fff',
+              fontFamily: 'var(--font-dm-sans)',
+              letterSpacing: '0.03em',
+              boxShadow: '0 4px 24px rgba(193,95,55,0.40)',
+            }}
           >
             {t('voirProduits')}
           </Link>
         </div>
 
-        {/* Vague en bas */}
+        {/* Vague */}
         <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,40 C360,80 1080,0 1440,40 L1440,60 L0,60 Z" fill="#F5F2E9"/>
+          <svg viewBox="0 0 1440 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,32 C360,64 1080,0 1440,32 L1440,48 L0,48 Z" fill="#F5F2E9"/>
           </svg>
         </div>
       </section>
 
-      {/* ── Bandeau annonce / "une propriété responsable" ── */}
-      <section className="py-3 text-center" style={{ backgroundColor: 'var(--vert-olive)' }}>
-        <p className="text-white italic" style={{ fontFamily: 'var(--font-dancing)', fontSize: '1.5rem' }}>
-          {annonce || (locale === 'pt-BR' ? 'uma propriedade responsável' : 'une propriété responsable')}
+      {/* ── Bandeau annonce ── */}
+      <section className="py-2.5 text-center" style={{ backgroundColor: 'var(--vert-sauge-fonce)' }}>
+        <p className="text-white/90 tracking-wide" style={{ fontFamily: 'var(--font-dancing)', fontSize: '1.25rem' }}>
+          {annonce || (pt ? 'uma propriedade responsável' : 'une propriété responsable')}
         </p>
       </section>
 
-      {/* ── Description ferme ── */}
+      {/* ── Description ── */}
       {description && (
-        <section className="py-6 px-4 text-center max-w-2xl mx-auto">
-          <p className="text-base leading-relaxed" style={{ color: 'var(--couleur-texte-doux)', fontFamily: 'var(--font-dm-sans)' }}>
+        <section className="pt-5 pb-1 px-5 text-center max-w-xl mx-auto">
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>
             {description}
           </p>
         </section>
       )}
 
-      {/* ── Valeurs ── */}
-      <section className="px-4 py-10 md:py-20 max-w-5xl mx-auto">
-        <div className="text-center mb-8 md:mb-14">
-          <p className="text-sm uppercase tracking-widest mb-2 font-semibold" style={{ color: 'var(--terracotta)' }}>
-            {locale === 'pt-BR' ? 'Por que escolher' : 'Pourquoi nous choisir'}
+      {/* ── Valeurs — scroll horizontal mobile ── */}
+      <section className="pt-6 pb-2">
+        <div className="px-5 mb-4">
+          <p className="text-xs uppercase tracking-widest font-semibold mb-0.5" style={{ color: 'var(--terracotta)' }}>
+            {pt ? 'Por que escolher' : 'Pourquoi nous choisir'}
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
+          <h2 className="text-xl font-bold" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
             {t('valeurs.titre')}
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
-          {/* Produits frais */}
-          <div className="rounded-2xl relative overflow-hidden flex flex-row md:flex-col items-center gap-4 md:gap-0 p-4 md:p-8 md:text-center" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
-            <div className="w-full h-1 absolute top-0 left-0 right-0 rounded-t-2xl" style={{ backgroundColor: 'var(--vert-olive)' }} />
-            <Image src="/icone-frais.png" alt="Produits frais" width={88} height={88} className="object-contain shrink-0 w-14 h-14 md:w-20 md:h-20 md:mb-4 md:mt-2" />
-            <div>
-              <h3 className="font-bold text-base md:text-lg md:mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>{t('valeurs.frais')}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>{t('valeurs.fraisDesc')}</p>
+        {/* Scroll horizontal sur mobile, grille sur desktop */}
+        <div className="flex gap-3 overflow-x-auto pb-3 px-5 scrollbar-hide md:grid md:grid-cols-3 md:overflow-visible">
+          {[
+            { img: '/icone-frais.png', titre: t('valeurs.frais'), desc: t('valeurs.fraisDesc'), couleur: 'var(--vert-olive)' },
+            { img: '/icone-circuit.png', titre: t('valeurs.local'), desc: t('valeurs.localDesc'), couleur: 'var(--terracotta)' },
+            { img: '/icone-naturel.png', titre: t('valeurs.naturel'), desc: t('valeurs.naturelDesc'), couleur: 'var(--vieux-rose)' },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className="shrink-0 rounded-2xl p-4 flex flex-col gap-3 md:shrink"
+              style={{
+                width: 'clamp(200px, 64vw, 260px)',
+                backgroundColor: 'var(--couleur-fond-carte)',
+                boxShadow: '0 2px 16px rgba(74,93,78,0.08)',
+                borderTop: `3px solid ${item.couleur}`,
+              }}
+            >
+              <Image src={item.img} alt={item.titre} width={44} height={44} className="object-contain" />
+              <div>
+                <h3 className="font-bold text-sm mb-1" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
+                  {item.titre}
+                </h3>
+                <p className="text-xs leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>
+                  {item.desc}
+                </p>
+              </div>
             </div>
-          </div>
-
-          {/* Circuit court */}
-          <div className="rounded-2xl relative overflow-hidden flex flex-row md:flex-col items-center gap-4 md:gap-0 p-4 md:p-8 md:text-center" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
-            <div className="w-full h-1 absolute top-0 left-0 right-0 rounded-t-2xl" style={{ backgroundColor: 'var(--terracotta)' }} />
-            <Image src="/icone-circuit.png" alt="Circuit court" width={88} height={88} className="object-contain shrink-0 w-14 h-14 md:w-20 md:h-20 md:mb-4 md:mt-2" />
-            <div>
-              <h3 className="font-bold text-base md:text-lg md:mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>{t('valeurs.local')}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>{t('valeurs.localDesc')}</p>
-            </div>
-          </div>
-
-          {/* 100% naturel */}
-          <div className="rounded-2xl relative overflow-hidden flex flex-row md:flex-col items-center gap-4 md:gap-0 p-4 md:p-8 md:text-center" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
-            <div className="w-full h-1 absolute top-0 left-0 right-0 rounded-t-2xl" style={{ backgroundColor: 'var(--vieux-rose)' }} />
-            <Image src="/icone-naturel.png" alt="100% naturel" width={88} height={88} className="object-contain shrink-0 w-14 h-14 md:w-20 md:h-20 md:mb-4 md:mt-2" />
-            <div>
-              <h3 className="font-bold text-base md:text-lg md:mb-2" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>{t('valeurs.naturel')}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--couleur-texte-doux)' }}>{t('valeurs.naturelDesc')}</p>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* ── Produits frais selon les saisons ── */}
+      {/* ── Produits de saison — scroll horizontal ── */}
       {produitsSaison.length > 0 && (
-        <section className="px-4 py-10 md:py-16" style={{ backgroundColor: 'var(--creme-fonce)' }}>
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-8">
-              <span
-                className="inline-block px-4 py-1 rounded-full text-sm font-semibold text-white mb-3"
-                style={{ backgroundColor: saison.couleur }}
-              >
-                {saison.emoji} {locale === 'pt-BR' ? saison.pt : saison.fr}
-              </span>
-              <h2 className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
-                {locale === 'pt-BR' ? 'Produtos frescos da estação' : 'Produits frais de saison'}
-              </h2>
-              <p className="text-sm mt-2" style={{ color: 'var(--couleur-texte-doux)' }}>
-                {locale === 'pt-BR'
-                  ? 'Colhidos frescos, disponíveis agora na fazenda'
-                  : 'Cueillis frais, disponibles maintenant à la ferme'}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-              {produitsSaison.map(p => (
-                <Link
-                  key={p.id}
-                  href={`/${locale}/produits/${p.id}`}
-                  className="rounded-xl overflow-hidden flex flex-col transition-transform hover:scale-[1.02]"
-                  style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}
+        <section className="pt-6 pb-4" style={{ backgroundColor: 'var(--creme-fonce)' }}>
+          <div className="px-5 mb-4 flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <span
+                  className="px-2.5 py-0.5 rounded-full text-xs font-semibold text-white"
+                  style={{ backgroundColor: saison.couleur }}
                 >
-                  <div className="relative" style={{ height: 120, backgroundColor: 'var(--couleur-accent)' }}>
-                    {p.image_url
-                      ? <img src={p.image_url} alt={p.nom} className="w-full h-full object-cover" />
-                      : <div className="w-full h-full flex items-center justify-center text-3xl">🌿</div>
-                    }
-                  </div>
-                  <div className="p-3">
-                    <p className="font-semibold text-sm leading-tight" style={{ color: 'var(--couleur-texte)' }}>{p.nom}</p>
-                    <p className="text-sm font-bold mt-1" style={{ color: 'var(--couleur-primaire-fonce)' }}>
-                      R$ {p.prix.toFixed(2)} <span className="text-xs font-normal" style={{ color: 'var(--couleur-texte-doux)' }}>/ {p.unite}</span>
-                    </p>
-                  </div>
-                </Link>
-              ))}
+                  {saison.emoji} {pt ? saison.pt : saison.fr}
+                </span>
+              </div>
+              <h2 className="text-xl font-bold" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
+                {pt ? 'Produtos frescos' : 'Produits frais'}
+              </h2>
             </div>
+            <Link
+              href={`/${locale}/produits`}
+              className="text-xs font-semibold shrink-0"
+              style={{ color: 'var(--vert-sauge-fonce)' }}
+            >
+              {pt ? 'Ver tudo →' : 'Voir tout →'}
+            </Link>
+          </div>
 
-            <div className="text-center mt-8">
+          {/* Scroll horizontal */}
+          <div className="flex gap-3 overflow-x-auto pb-2 px-5 scrollbar-hide">
+            {produitsSaison.map(p => (
               <Link
-                href={`/${locale}/produits`}
-                className="inline-block px-7 py-3 rounded-full font-semibold text-sm transition-all hover:scale-105"
-                style={{ backgroundColor: 'var(--vert-sauge-fonce)', color: '#fff' }}
+                key={p.id}
+                href={`/${locale}/produits/${p.id}`}
+                className="shrink-0 rounded-2xl overflow-hidden flex flex-col"
+                style={{
+                  width: 'clamp(140px, 42vw, 180px)',
+                  backgroundColor: 'var(--couleur-fond-carte)',
+                  boxShadow: '0 2px 12px rgba(74,93,78,0.10)',
+                }}
               >
-                {locale === 'pt-BR' ? 'Ver todos os produtos →' : 'Voir tous les produits →'}
+                <div className="relative" style={{ aspectRatio: '1/1', backgroundColor: 'var(--couleur-accent)' }}>
+                  {p.image_url
+                    ? <img src={p.image_url} alt={p.nom} className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center text-3xl">🌿</div>
+                  }
+                </div>
+                <div className="p-2.5">
+                  <p className="font-semibold text-xs leading-tight mb-1" style={{ color: 'var(--couleur-texte)' }}>{p.nom}</p>
+                  <p className="text-xs font-bold" style={{ color: 'var(--couleur-primaire-fonce)' }}>
+                    R$ {p.prix.toFixed(2)}
+                    <span className="font-normal ml-0.5" style={{ color: 'var(--couleur-texte-doux)', fontSize: 10 }}>/ {p.unite}</span>
+                  </p>
+                </div>
               </Link>
-            </div>
+            ))}
           </div>
         </section>
       )}
 
-      {/* ── Avis clients ── */}
+      {/* ── Avis clients — scroll horizontal ── */}
       {avisAccueil.length > 0 && (
-        <section className="px-4 py-10 md:py-16 max-w-5xl mx-auto">
-          <div className="text-center mb-8">
-            <p className="text-sm uppercase tracking-widest mb-2 font-semibold" style={{ color: 'var(--terracotta)' }}>
-              {pt ? 'O que dizem nossos clientes' : 'Ce que disent nos clients'}
-            </p>
-            <h2 className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
-              {pt ? 'Avaliações' : 'Avis clients'}
-            </h2>
+        <section className="pt-6 pb-4">
+          <div className="px-5 mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-widest font-semibold mb-0.5" style={{ color: 'var(--terracotta)' }}>
+                {pt ? 'O que dizem' : 'Ce que disent nos clients'}
+              </p>
+              <h2 className="text-xl font-bold" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
+                {pt ? 'Avaliações' : 'Avis clients'}
+              </h2>
+            </div>
+            <Link
+              href={`/${locale}/avis`}
+              className="text-xs font-semibold shrink-0"
+              style={{ color: 'var(--vert-sauge-fonce)' }}
+            >
+              {pt ? 'Ver tudo →' : 'Voir tout →'}
+            </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+
+          <div className="flex gap-3 overflow-x-auto pb-2 px-5 scrollbar-hide">
             {avisAccueil.map(a => (
-              <div key={a.id} className="rounded-2xl p-5" style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)' }}>
-                <EtoilesDisplay note={a.note} taille={14} />
+              <div
+                key={a.id}
+                className="shrink-0 rounded-2xl p-4 flex flex-col gap-2"
+                style={{
+                  width: 'clamp(220px, 72vw, 280px)',
+                  backgroundColor: 'var(--couleur-fond-carte)',
+                  boxShadow: '0 2px 12px rgba(74,93,78,0.08)',
+                }}
+              >
+                <EtoilesDisplay note={a.note} taille={13} />
                 {a.commentaire && (
-                  <p className="text-sm mt-3 leading-relaxed italic" style={{ color: 'var(--couleur-texte)' }}>
+                  <p className="text-xs leading-relaxed italic flex-1" style={{ color: 'var(--couleur-texte)' }}>
                     &ldquo;{a.commentaire}&rdquo;
                   </p>
                 )}
-                <p className="text-xs mt-3 font-semibold" style={{ color: 'var(--vert-sauge-fonce)' }}>
+                <p className="text-xs font-semibold mt-auto" style={{ color: 'var(--vert-sauge-fonce)' }}>
                   {a.prenom ? `${a.prenom}${a.nom ? ' ' + a.nom[0] + '.' : ''}` : 'Client'}
                 </p>
               </div>
             ))}
           </div>
-          <div className="text-center mt-8">
-            <Link
-              href={`/${locale}/avis`}
-              className="inline-block px-7 py-3 rounded-full font-semibold text-sm transition-all hover:scale-105"
-              style={{ border: '2px solid var(--vert-sauge-fonce)', color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-dm-sans)' }}
-            >
-              {pt ? 'Ver todas as avaliações →' : 'Voir tous les avis →'}
-            </Link>
-          </div>
         </section>
       )}
 
-      {/* ── CTA submark ── */}
-      <section className="py-12 text-center" style={{ backgroundColor: 'var(--creme-fonce)' }}>
-        <Image src="/logo-submark.png" alt="FM" width={140} height={140} className="mx-auto mb-6 object-contain" />
-        <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
-          {locale === 'pt-BR' ? 'Direto da fazenda para você' : 'Directement de la ferme à vous'}
+      {/* ── CTA final ── */}
+      <section
+        className="mx-4 mb-6 rounded-2xl p-6 text-center"
+        style={{
+          background: 'linear-gradient(135deg, var(--vert-sauge-fonce) 0%, var(--vert-olive) 100%)',
+        }}
+      >
+        <h2 className="text-lg font-bold mb-1.5 text-white" style={{ fontFamily: 'var(--font-playfair)' }}>
+          {pt ? 'Direto da fazenda para você' : 'Directement de la ferme à vous'}
         </h2>
-        <p className="text-sm mb-8 max-w-xs mx-auto" style={{ color: 'var(--couleur-texte-doux)' }}>
-          {locale === 'pt-BR'
+        <p className="text-xs mb-4 text-white/70 max-w-xs mx-auto">
+          {pt
             ? 'Produtos frescos colhidos com cuidado, entregues na sua porta.'
             : 'Des produits frais cueillis avec soin, livrés à votre porte.'}
         </p>
         <Link
           href={`/${locale}/produits`}
-          className="inline-block px-8 py-3 rounded-full font-semibold text-sm transition-all hover:scale-105"
-          style={{ backgroundColor: 'var(--vert-sauge)', color: '#fff', fontFamily: 'var(--font-dm-sans)' }}
+          className="inline-block px-6 py-2.5 rounded-full font-semibold text-sm transition-all active:scale-95"
+          style={{ backgroundColor: 'var(--terracotta)', color: '#fff', fontFamily: 'var(--font-dm-sans)' }}
         >
           {t('voirProduits')}
         </Link>
       </section>
+
     </div>
   )
 }
