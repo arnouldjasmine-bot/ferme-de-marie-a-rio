@@ -7,7 +7,7 @@ const config: CapacitorConfig = {
   // En production : l'app charge le site Vercel
   // Le site web continue de tourner normalement, rien ne change
   server: {
-    url: 'https://lafermedemarieario.com.br',
+    url: 'https://app.lafermedemarieario.com.br',
     cleartext: false,
   },
 
@@ -16,10 +16,10 @@ const config: CapacitorConfig = {
 
   ios: {
     scheme: 'LaFermedeMarie',
-    contentInset: 'always',
+    contentInset: 'automatic',
     backgroundColor: '#F5F2E9',
     preferredContentMode: 'mobile',
-    scrollEnabled: false,
+    scrollEnabled: true,
   },
 
   plugins: {

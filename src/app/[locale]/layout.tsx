@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { Playfair_Display, Dancing_Script, DM_Sans } from 'next/font/google'
 import { routing } from '@/i18n/routing'
 import { PanierProvider } from '@/lib/panier-context'
+import { isAppMode } from '@/lib/is-app'
 import '../globals.css'
 
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
@@ -37,14 +38,23 @@ export default async function LocaleLayout({ children, params }: Props) {
   }
 
   const messages = await getMessages()
+  const appMode = await isAppMode()
 
   return (
     <html lang={locale} className={`${playfair.variable} ${dancing.variable} ${dmSans.variable}`}>
       <head>
+        {/* Viewport :
+            - Site web : zoom autorisé, comportement standard
+            - App Capacitor : pas de zoom (user-scalable=no), viewport-fit=cover pour l'encoche */}
+        {appMode ? (
+          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        ) : (
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+        )}
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content={appMode ? 'black-translucent' : 'default'} />
         <meta name="apple-mobile-web-app-title" content="Ferme de Marie" />
         {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
           <script

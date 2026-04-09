@@ -7,6 +7,23 @@ body {
   font-family: var(--font-dm-sans, 'DM Sans'), 'Segoe UI', Arial, sans-serif;
 }
 
+/* ─── Fixes iOS / Capacitor ──────────────────────────────────────────────────
+   font-size >= 16px : empêche le zoom automatique sur focus des inputs iOS
+   -webkit-tap-highlight-color : supprime le flash gris au tap (look natif)
+   touch-action : meilleure réactivité sur les boutons
+──────────────────────────────────────────────────────────────────────────── */
+input, select, textarea {
+  font-size: 16px;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a {
+  touch-action: manipulation;
+}
+
 /* Masque la scrollbar sur les conteneurs à défilement horizontal */
 .scrollbar-hide {
   -ms-overflow-style: none;

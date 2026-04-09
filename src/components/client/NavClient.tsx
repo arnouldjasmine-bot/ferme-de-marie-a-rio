@@ -38,7 +38,8 @@ export default function NavClient() {
         backgroundColor: 'rgba(245, 242, 233, 0.96)',
         backdropFilter: 'blur(8px)',
         borderBottom: '1px solid var(--couleur-bordure)',
-        boxShadow: 'var(--ombre-nav)'
+        boxShadow: 'var(--ombre-nav)',
+        paddingTop: 'env(safe-area-inset-top)',
       }}
     >
       <div className="max-w-6xl mx-auto px-4 py-1 flex items-center justify-between gap-4">
