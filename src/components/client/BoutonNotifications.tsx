@@ -8,12 +8,17 @@ interface Props {
   locale: string
 }
 
+function isCapacitorApp(): boolean {
+  if (typeof window === 'undefined') return false
+  return !!(window as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.()
+}
+
 export default function BoutonNotifications({ locale }: Props) {
   const { user } = useAuth()
-  const [actif, setActif]         = useState(false)
-  const [loading, setLoading]     = useState(false)
-  const [supporte, setSupporte]   = useState(false)
-  const [erreur, setErreur]       = useState('')
+  const [actif, setActif]       = useState(false)
+  const [loading, setLoading]   = useState(false)
+  const [supporte, setSupporte] = useState(false)
+  const [erreur, setErreur]     = useState('')
   const pt = locale === 'pt-BR'
 
   const supabase = createBrowserClient(
@@ -22,37 +27,98 @@ export default function BoutonNotifications({ locale }: Props) {
   )
 
   useEffect(() => {
-    setSupporte(typeof window !== 'undefined' && 'PushManager' in window && 'serviceWorker' in navigator)
+    if (isCapacitorApp()) {
+      // Dans l'app Capacitor : les notifications sont gérées nativement par CapacitorPushInit
+      // On vérifie juste si la permission a déjà été accordée
+      import('@capacitor/push-notifications').then(({ PushNotifications }) => {
+        PushNotifications.checkPermissions().then(perm => {
+          setActif(perm.receive === 'granted')
+          setSupporte(true)
+        }).catch(() => setSupporte(false))
+      }).catch(() => setSupporte(false))
+    } else {
+      // Web : vérifier support ServiceWorker + PushManager
+      setSupporte(
+        typeof window !== 'undefined' &&
+        'PushManager' in window &&
+        'serviceWorker' in navigator
+      )
+    }
   }, [])
 
-  // Vérifier si déjà abonné
   useEffect(() => {
-    if (!supporte || !user) return
+    if (isCapacitorApp() || !supporte || !user) return
     navigator.serviceWorker.ready.then(reg => {
-      reg.pushManager.getSubscription().then(sub => {
-        setActif(!!sub)
-      })
+      reg.pushManager.getSubscription().then(sub => setActif(!!sub))
     })
   }, [supporte, user])
 
   if (!user) return null
 
-  // En développement local, le SW est désactivé — on ne peut pas tester les push
+  // ── Mode Capacitor (app native) ──────────────────────────────────────────
+  if (isCapacitorApp()) {
+    if (!supporte) return null
+
+    async function activerNatif() {
+      setLoading(true)
+      setErreur('')
+      try {
+        const { PushNotifications } = await import('@capacitor/push-notifications')
+        const perm = await PushNotifications.requestPermissions()
+        if (perm.receive === 'granted') {
+          await PushNotifications.register()
+          setActif(true)
+        } else {
+          setErreur(pt ? 'Permissão recusada.' : 'Permission refusée.')
+        }
+      } catch (e) {
+        setErreur(pt ? 'Erro ao ativar.' : 'Erreur lors de l\'activation.')
+        console.error(e)
+      }
+      setLoading(false)
+    }
+
+    return (
+      <div className="flex flex-col gap-1">
+        <button
+          onClick={actif ? undefined : activerNatif}
+          disabled={loading || actif}
+          className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all"
+          style={{
+            backgroundColor: actif ? '#eef3ee' : 'transparent',
+            color: 'var(--vert-sauge-fonce)',
+            borderColor: 'var(--couleur-bordure)',
+            opacity: loading ? 0.5 : 1,
+          }}
+        >
+          {loading ? '…' : actif ? '🔔' : '🔕'}
+          <span>
+            {actif
+              ? (pt ? 'Notificações ativas' : 'Notifications actives')
+              : (pt ? 'Ativar notificações' : 'Activer les notifications')}
+          </span>
+        </button>
+        {erreur && <p className="text-xs px-1" style={{ color: 'var(--couleur-erreur)' }}>{erreur}</p>}
+      </div>
+    )
+  }
+
+  // ── Mode développement ───────────────────────────────────────────────────
   if (process.env.NODE_ENV === 'development') {
     return (
       <p className="text-xs px-1" style={{ color: 'var(--couleur-texte-doux)' }}>
-        🛠️ Notifications désactivées en développement local. Tester sur le site de production (Chrome).
+        🛠️ Notifications désactivées en développement local.
       </p>
     )
   }
 
-  // Navigateur ne supporte pas les push (ex: iOS Safari sans PWA installé)
+  // ── Mode web (navigateur) ─────────────────────────────────────────────────
   if (!supporte) {
     return (
       <p className="text-xs px-1" style={{ color: 'var(--couleur-texte-doux)' }}>
         {pt
-          ? '📵 Notificações não disponíveis neste navegador. Instale o app na tela inicial para recebê-las.'
-          : '📵 Notifications non disponibles sur ce navigateur. Installez l\'app sur l\'écran d\'accueil pour les recevoir.'}
+          ? '📵 Instale o app para receber notificações.'
+          : '📵 Installez l\'app pour recevoir les notifications.'}
       </p>
     )
   }
@@ -62,51 +128,34 @@ export default function BoutonNotifications({ locale }: Props) {
     setErreur('')
     try {
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-      if (!vapidKey) {
-        setErreur(pt ? 'Notificações não configuradas.' : 'Notifications non configurées (clé VAPID manquante).')
-        setLoading(false)
-        return
-      }
+      if (!vapidKey) { setErreur('Clé VAPID manquante.'); setLoading(false); return }
 
-      // Récupérer ou enregistrer le SW — ne pas bloquer sur ready
       let reg = await navigator.serviceWorker.getRegistration('/')
       if (!reg) {
         reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
-        // Attendre l'activation avec timeout 15s
         if (!reg.active) {
           await Promise.race([
             new Promise<void>(resolve => {
               const worker = reg!.installing ?? reg!.waiting
               if (!worker) { resolve(); return }
-              worker.addEventListener('statechange', function onState() {
-                if (worker.state === 'activated') { resolve() }
+              worker.addEventListener('statechange', function() {
+                if (worker.state === 'activated') resolve()
               })
-              reg!.addEventListener('updatefound', () => resolve())
             }),
             new Promise<void>(resolve => setTimeout(resolve, 15000)),
           ])
         }
       }
       const permission = await Notification.requestPermission()
-      if (permission === 'denied') {
-        setErreur(pt ? 'Permissão recusada nas configurações do navegador.' : 'Permission refusée dans les paramètres du navigateur.')
-        setLoading(false)
-        return
-      }
-      if (permission !== 'granted') {
-        setLoading(false)
-        return
-      }
+      if (permission !== 'granted') { setLoading(false); return }
 
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: base64UrlToUint8Array(vapidKey).buffer as ArrayBuffer,
       })
-
       const json = sub.toJSON()
       const { data: { session } } = await supabase.auth.getSession()
-
-      const res = await fetch('/api/push/subscribe', {
+      await fetch('/api/push/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,18 +168,9 @@ export default function BoutonNotifications({ locale }: Props) {
           locale,
         }),
       })
-
-      if (!res.ok) {
-        setErreur(pt ? 'Erro ao salvar assinatura.' : 'Erreur lors de l\'enregistrement.')
-        setLoading(false)
-        return
-      }
-
       setActif(true)
     } catch (err) {
-      console.error('Erreur abonnement push:', err)
-      const msg = err instanceof Error ? err.message : String(err)
-      setErreur(`Erreur: ${msg}`)
+      setErreur(`Erreur: ${err instanceof Error ? err.message : String(err)}`)
     }
     setLoading(false)
   }
@@ -141,19 +181,15 @@ export default function BoutonNotifications({ locale }: Props) {
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.getSubscription()
       if (sub) {
-        const endpoint = sub.endpoint
         await sub.unsubscribe()
-        // Supprimer aussi de la base
         await fetch('/api/push/unsubscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ endpoint }),
+          body: JSON.stringify({ endpoint: sub.endpoint }),
         })
       }
       setActif(false)
-    } catch (err) {
-      console.error('Erreur désabonnement push:', err)
-    }
+    } catch (err) { console.error(err) }
     setLoading(false)
   }
 
@@ -162,39 +198,33 @@ export default function BoutonNotifications({ locale }: Props) {
       <button
         onClick={actif ? desabonner : abonner}
         disabled={loading}
-        className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all hover:opacity-80 disabled:opacity-50"
+        className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all"
         style={{
           backgroundColor: actif ? '#eef3ee' : 'transparent',
           color: 'var(--vert-sauge-fonce)',
           borderColor: 'var(--couleur-bordure)',
         }}
       >
-        {loading ? '…' : (actif ? '🔔' : '🔕')}
+        {loading ? '…' : actif ? '🔔' : '🔕'}
         <span>
           {actif
             ? (pt ? 'Notificações ativas' : 'Notifications actives')
             : (pt ? 'Ativar notificações' : 'Activer les notifications')}
         </span>
       </button>
-      {erreur && (
-        <p className="text-xs px-1" style={{ color: 'var(--couleur-erreur)' }}>{erreur}</p>
-      )}
+      {erreur && <p className="text-xs px-1" style={{ color: 'var(--couleur-erreur)' }}>{erreur}</p>}
     </div>
   )
 }
 
-
-// Conversion base64url → Uint8Array sans atob (évite les problèmes d'encodage)
 function base64UrlToUint8Array(base64UrlString: string): Uint8Array {
   const str = base64UrlString.trim().replace(/[^A-Za-z0-9-_]/g, '').replace(/-/g, '+').replace(/_/g, '/')
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
   const lookup = new Uint8Array(256)
   for (let i = 0; i < chars.length; i++) lookup[chars.charCodeAt(i)] = i
-
   const len = str.replace(/=/g, '').length
   const bufLen = Math.floor((len * 3) / 4)
   const buf = new Uint8Array(bufLen)
-
   let i = 0, p = 0
   const slen = str.length
   while (i < slen) {
