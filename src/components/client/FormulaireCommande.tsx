@@ -82,6 +82,45 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
       setForm(prev => ({ ...prev, [champ]: e.target.value }))
   }
 
+  // Masque de saisie téléphone selon pays
+  function formaterTelephone(valeur: string, code: string): string {
+    const digits = valeur.replace(/\D/g, '')
+    if (code === '+55') {
+      // Brésil : (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+      const d = digits.slice(0, 11)
+      if (d.length <= 2)  return d
+      if (d.length <= 7)  return `(${d.slice(0,2)}) ${d.slice(2)}`
+      if (d.length <= 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`
+      return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`
+    }
+    if (code === '+33') {
+      // France : 0X XX XX XX XX
+      const d = digits.slice(0, 10)
+      const parts = d.match(/.{1,2}/g) ?? []
+      return parts.join(' ')
+    }
+    if (code === '+351') {
+      // Portugal : XXX XXX XXX
+      const d = digits.slice(0, 9)
+      if (d.length <= 3) return d
+      if (d.length <= 6) return `${d.slice(0,3)} ${d.slice(3)}`
+      return `${d.slice(0,3)} ${d.slice(3,6)} ${d.slice(6)}`
+    }
+    if (code === '+1') {
+      // USA : (XXX) XXX-XXXX
+      const d = digits.slice(0, 10)
+      if (d.length <= 3) return d
+      if (d.length <= 6) return `(${d.slice(0,3)}) ${d.slice(3)}`
+      return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`
+    }
+    return valeur
+  }
+
+  function handleTelephone(e: React.ChangeEvent<HTMLInputElement>) {
+    const formatted = formaterTelephone(e.target.value, paysSelectionne.code)
+    setForm(prev => ({ ...prev, telephone: formatted }))
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
@@ -329,7 +368,10 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
                 value={paysSelectionne.code}
                 onChange={e => {
                   const p = PAYS.find(p => p.code === e.target.value)
-                  if (p) setPaysSelectionne(p)
+                  if (p) {
+                    setPaysSelectionne(p)
+                    setForm(prev => ({ ...prev, telephone: '' })) // reset au changement de pays
+                  }
                 }}
                 className="shrink-0 border-r px-2 py-2 text-sm bg-transparent outline-none focus:ring-2 cursor-pointer"
                 style={{
@@ -349,9 +391,17 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
                 type="tel"
                 name="telephone"
                 autoComplete="tel-national"
-                placeholder={paysSelectionne.code === '+55' ? '21 99999-9999' : '6 12 34 56 78'}
+                placeholder={{
+                  '+55':  '(21) 99999-9999',
+                  '+33':  '06 12 34 56 78',
+                  '+351': '912 345 678',
+                  '+1':   '(415) 555-0100',
+                }[paysSelectionne.code] ?? ''}
                 value={form.telephone}
-                onChange={set('telephone')}
+                onChange={e => {
+                  // Réinitialiser si changement de pays
+                  handleTelephone(e)
+                }}
                 required
                 className="flex-1 px-3 py-2 text-sm outline-none focus:ring-2 bg-transparent"
                 style={{ '--tw-ring-color': 'var(--vert-sauge)' } as React.CSSProperties}
