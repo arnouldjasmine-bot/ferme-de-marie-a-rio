@@ -73,6 +73,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut()
+    // Préserver le flag onboarding pour ne pas re-déclencher l'écran de bienvenue
+    localStorage.setItem('ferme-onboarding-done', '1')
     setUser(null)
     setProfile(null)
   }, [supabase])

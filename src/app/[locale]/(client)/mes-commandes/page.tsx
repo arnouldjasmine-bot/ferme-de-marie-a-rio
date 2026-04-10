@@ -49,7 +49,7 @@ export default function PageMesCommandes() {
   const params = useParams()
   const locale = (params?.locale as string) ?? 'fr'
   const pt = locale === 'pt-BR'
-  const { user, loading, signOut } = useAuth()
+  const { user, profile, loading, signOut } = useAuth()
 
   const [email, setEmail]         = useState('')
   const [commandes, setCommandes] = useState<Commande[] | null>(null)
@@ -116,40 +116,77 @@ export default function PageMesCommandes() {
     : (commandes ?? [])
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pt-6 pb-6">
-      <div className="flex items-center justify-between mb-2 gap-2">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--police-titre, var(--font-playfair))' }}>
+    <div className="max-w-2xl mx-auto px-4 pt-5 pb-6">
+
+      {/* ── Carte profil ── */}
+      {!loading && user && (
+        <div
+          className="rounded-2xl p-4 mb-5 flex items-center gap-3"
+          style={{ backgroundColor: 'var(--couleur-fond-carte)', boxShadow: '0 2px 12px rgba(74,93,78,0.08)' }}
+        >
+          {/* Avatar initiales */}
+          <div
+            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-base shrink-0"
+            style={{ backgroundColor: 'var(--vert-sauge-fonce)' }}
+          >
+            {profile?.prenom?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? '?'}
+          </div>
+
+          {/* Nom + email */}
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-sm truncate" style={{ color: 'var(--vert-sauge-fonce)' }}>
+              {profile?.prenom ? `${profile.prenom} ${profile.nom ?? ''}`.trim() : user.email}
+            </p>
+            {profile?.prenom && (
+              <p className="text-xs truncate" style={{ color: 'var(--couleur-texte-doux)' }}>{user.email}</p>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            <BoutonNotifications locale={locale} />
+            <a
+              href={`/${locale}/compte/profil`}
+              className="p-2 rounded-full transition-opacity"
+              style={{ backgroundColor: 'var(--couleur-accent)' }}
+              title={pt ? 'Editar perfil' : 'Modifier le profil'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </a>
+            <button
+              onClick={async () => { await signOut(); window.location.href = `/${locale}` }}
+              className="p-2 rounded-full transition-opacity"
+              style={{ backgroundColor: 'var(--couleur-accent)' }}
+              title={pt ? 'Sair' : 'Déconnexion'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <h1 className="text-xl font-bold" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
           {pt ? 'Meus pedidos' : 'Mes commandes'}
         </h1>
-        {/* Bouton refresh */}
         {user && commandes !== null && (
           <button
             onClick={chargerParAuth}
             disabled={chargement}
-            title={pt ? 'Atualizar' : 'Actualiser'}
-            className="p-2 rounded-full transition-opacity hover:opacity-70 disabled:opacity-40"
+            className="p-2 rounded-full transition-opacity disabled:opacity-40"
             style={{ backgroundColor: 'var(--couleur-accent)' }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={chargement ? 'animate-spin' : ''}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={chargement ? 'animate-spin' : ''}>
               <path d="M21 2v6h-6M3 22v-6h6M21 13a9 9 0 01-15.66 6.16M3 11a9 9 0 0115.66-6.16"/>
             </svg>
           </button>
         )}
       </div>
-
-      {/* Barre compte — visible si connecté */}
-      {!loading && user && (
-        <div className="flex items-center justify-between mb-4 gap-3">
-          <BoutonNotifications locale={locale} />
-          <button
-            onClick={async () => { await signOut(); window.location.href = `/${locale}` }}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-opacity hover:opacity-70"
-            style={{ color: 'var(--couleur-texte-doux)', borderColor: 'var(--couleur-bordure)' }}
-          >
-            ↩ {pt ? 'Sair' : 'Déconnexion'}
-          </button>
-        </div>
-      )}
 
       {/* Pendant le chargement de l'auth */}
       {loading && (
