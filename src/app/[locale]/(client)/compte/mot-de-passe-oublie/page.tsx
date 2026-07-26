@@ -29,7 +29,8 @@ export default function PageMotDePasseOublie() {
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo })
 
     if (error) {
-      setErreur(pt ? 'Erro ao enviar. Verifique o e-mail.' : 'Erreur lors de l\'envoi. Vérifiez l\'email.')
+      const detail = error.message ? ` (${error.message})` : ''
+      setErreur((pt ? 'Erro ao enviar. Verifique o e-mail.' : 'Erreur lors de l\'envoi. Vérifiez l\'email.') + detail)
     } else {
       setEnvoi(true)
     }
