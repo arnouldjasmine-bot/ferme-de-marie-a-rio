@@ -26,7 +26,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
   const t    = useTranslations('commande')
   const tErr = useTranslations('erreurs')
   const { articles, totalPrix, viderPanier } = usePanier()
-  const { user, profile } = useAuth()
+  const { user, profile, refreshProfile } = useAuth()
 
   // Indicatif pays par défaut selon la langue du site
   const paysDefaut = locale === 'pt-BR' ? PAYS[0] : PAYS[1]
@@ -206,6 +206,12 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
         data.append('user_id', user.id)
       }
       await fetch('/api/commandes', { method: 'POST', body: data })
+      // L'API vient de sauvegarder l'adresse sur le profil : le contexte
+      // d'auth (chargé une seule fois) ne le sait pas encore tant qu'on ne
+      // le rafraîchit pas nous-mêmes.
+      if (user?.id && mode === 'livraison' && adresse) {
+        await refreshProfile()
+      }
     } catch (err) {
       console.error(err)
     }

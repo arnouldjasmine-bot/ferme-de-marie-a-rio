@@ -18,6 +18,7 @@ interface AuthContextValue {
   profile: Profile | null
   loading: boolean
   signOut: () => Promise<void>
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextValue>({
   profile: null,
   loading: true,
   signOut: async () => {},
+  refreshProfile: async () => {},
 })
 
 export function useAuth() {
@@ -79,8 +81,14 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     setProfile(null)
   }, [supabase])
 
+  // Recharge le profil depuis Supabase : à appeler après toute mise à jour
+  // faite en dehors de ce contexte (ex : adresse sauvegardée après une commande).
+  const refreshProfile = useCallback(async () => {
+    if (user?.id) await fetchProfile(user.id)
+  }, [user, fetchProfile])
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ user, profile, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )

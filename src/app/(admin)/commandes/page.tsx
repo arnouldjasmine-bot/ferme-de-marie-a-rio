@@ -71,6 +71,13 @@ export default async function PageCommandes() {
           Commandes ({raw.length})
         </h1>
         <div className="flex items-center gap-2">
+          <Link
+            href="/commandes/preparation"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
+            style={{ backgroundColor: 'var(--vert-sauge-fonce)' }}
+          >
+            📋 Liste de préparation
+          </Link>
           {nbRetard > 0 && (
             <Link
               href="/commandes/relances"

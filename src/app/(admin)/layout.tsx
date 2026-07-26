@@ -33,10 +33,14 @@ export default function AdminLayout({ children }: Props) {
       </head>
       <body>
         <div className="min-h-screen flex">
-          <SidebarAdmin />
+          <div className="print:hidden contents">
+            <SidebarAdmin />
+          </div>
           <main className="flex-1 p-4 md:p-8 pt-16 md:pt-8 overflow-x-hidden" style={{ backgroundColor: 'var(--admin-fond)' }}>
             {children}
-            <BoutonRefreshMobile />
+            <div className="print:hidden contents">
+              <BoutonRefreshMobile />
+            </div>
           </main>
         </div>
       </body>
