@@ -56,12 +56,6 @@ export default async function LocaleLayout({ children, params }: Props) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content={appMode ? 'black-translucent' : 'default'} />
         <meta name="apple-mobile-web-app-title" content="Ferme de Marie" />
-        {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
-          <script
-            src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
-            async
-          />
-        )}
       </head>
       <body>
         <NextIntlClientProvider messages={messages}>

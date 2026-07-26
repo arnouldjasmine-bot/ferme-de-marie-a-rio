@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
-import AdresseAutocomplete from '@/components/client/AdresseAutocomplete'
+import AdresseCep from '@/components/client/AdresseCep'
 
 const PAYS = [
   { code: '+55', flag: '🇧🇷', label: 'BR' },
@@ -170,7 +170,7 @@ export default function PageInscription() {
             </p>
           </div>
 
-          <AdresseAutocomplete
+          <AdresseCep
             value={form.adresse}
             label={pt ? 'Endereço de entrega' : 'Adresse de livraison'}
             locale={locale}

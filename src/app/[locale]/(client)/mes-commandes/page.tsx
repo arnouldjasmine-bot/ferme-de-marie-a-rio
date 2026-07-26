@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { useAuth } from '@/components/client/AuthProvider'
 import FormulaireAvis from '@/components/client/FormulaireAvis'
@@ -50,6 +50,7 @@ export default function PageMesCommandes() {
   const locale = (params?.locale as string) ?? 'fr'
   const pt = locale === 'pt-BR'
   const { user, profile, loading, signOut } = useAuth()
+  const router = useRouter()
 
   const [email, setEmail]         = useState('')
   const [commandes, setCommandes] = useState<Commande[] | null>(null)
@@ -111,9 +112,65 @@ export default function PageMesCommandes() {
 
   const commandesEnCours = commandes?.filter(c => !isFinalisee(c)) ?? []
   const commandesPassees = commandes?.filter(c => isFinalisee(c)) ?? []
-  const commandesAffichees = user
-    ? (onglet === 'en_cours' ? commandesEnCours : commandesPassees)
-    : (commandes ?? [])
+  const commandesAffichees = onglet === 'en_cours' ? commandesEnCours : commandesPassees
+
+  // Pendant le chargement auth
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64" style={{ color: 'var(--couleur-texte-doux)' }}>…</div>
+    )
+  }
+
+  // Non connecté → belle page immersive
+  if (!user) {
+    return (
+      <div className="fixed inset-0" style={{ zIndex: 40 }}>
+        {/* Photo de fond */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: 'url(/hero-ferme.jpg)' }}
+        />
+        {/* Overlay dégradé */}
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(20,40,20,0.78) 55%, rgba(10,25,10,0.92) 100%)' }}
+        />
+
+        {/* Contenu */}
+        <div
+          className="relative flex flex-col items-center justify-end h-full px-8 text-center"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 100px)' }}
+        >
+          <img src="/logo.png" alt="La Ferme de Marie" className="w-20 h-20 object-contain mb-5 drop-shadow-xl" />
+
+          <h1
+            className="text-3xl font-bold text-white mb-2 leading-tight"
+            style={{ fontFamily: 'var(--font-playfair)', textShadow: '0 2px 16px rgba(0,0,0,0.4)' }}
+          >
+            La Ferme de Marie
+          </h1>
+          <p className="text-white/75 text-sm mb-8 max-w-xs">
+            {pt ? 'Produtos frescos da fazenda até você.' : 'Des produits frais de la ferme, livrés chez vous.'}
+          </p>
+
+          <button
+            onClick={() => router.push(`/${locale}/compte/connexion`)}
+            className="w-full max-w-xs py-4 rounded-2xl text-white font-semibold text-base mb-3 active:scale-95 transition-transform"
+            style={{ backgroundColor: 'var(--vert-sauge-fonce)', boxShadow: '0 4px 24px rgba(0,0,0,0.3)' }}
+          >
+            {pt ? 'Entrar na minha conta' : 'Me connecter'}
+          </button>
+          <button
+            onClick={() => router.push(`/${locale}/compte/inscription`)}
+            className="w-full max-w-xs py-4 rounded-2xl font-semibold text-sm active:scale-95 transition-transform"
+            style={{ backgroundColor: 'rgba(255,255,255,0.12)', color: 'white', border: '1.5px solid rgba(255,255,255,0.35)' }}
+          >
+            {pt ? 'Criar uma conta' : 'Créer un compte'}
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-5 pb-6">
@@ -145,8 +202,8 @@ export default function PageMesCommandes() {
           {/* Actions */}
           <div className="flex items-center gap-2 shrink-0">
             <BoutonNotifications locale={locale} />
-            <a
-              href={`/${locale}/compte/profil`}
+            <button
+              onClick={() => router.push(`/${locale}/compte/profil`)}
               className="p-2 rounded-full transition-opacity"
               style={{ backgroundColor: 'var(--couleur-accent)' }}
               title={pt ? 'Editar perfil' : 'Modifier le profil'}
@@ -155,7 +212,7 @@ export default function PageMesCommandes() {
                 <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
-            </a>
+            </button>
             <button
               onClick={async () => { await signOut(); window.location.href = `/${locale}` }}
               className="p-2 rounded-full transition-opacity"
@@ -174,7 +231,7 @@ export default function PageMesCommandes() {
         <h1 className="text-xl font-bold" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair)' }}>
           {pt ? 'Meus pedidos' : 'Mes commandes'}
         </h1>
-        {user && commandes !== null && (
+        {commandes !== null && (
           <button
             onClick={chargerParAuth}
             disabled={chargement}
@@ -188,41 +245,8 @@ export default function PageMesCommandes() {
         )}
       </div>
 
-      {/* Pendant le chargement de l'auth */}
-      {loading && (
-        <div className="py-16 text-center" style={{ color: 'var(--couleur-texte-doux)' }}>…</div>
-      )}
-
-      {/* Non connecté → formulaire email */}
-      {!loading && !user && (
-        <>
-          <p className="text-sm mb-6" style={{ color: 'var(--couleur-texte-doux)' }}>
-            {pt ? 'Informe seu e-mail para ver seus pedidos.' : 'Entrez votre email pour retrouver vos commandes.'}
-          </p>
-          <form onSubmit={chercher} className="flex gap-3 mb-8">
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder={pt ? 'seu@email.com' : 'votre@email.com'}
-              required
-              className="flex-1 border rounded-xl px-4 py-2.5 text-sm outline-none"
-              style={{ borderColor: 'var(--couleur-bordure)' }}
-            />
-            <button
-              type="submit"
-              disabled={chargement}
-              className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{ backgroundColor: 'var(--vert-sauge-fonce)' }}
-            >
-              {chargement ? '…' : (pt ? 'Buscar' : 'Chercher')}
-            </button>
-          </form>
-        </>
-      )}
-
-      {/* Onglets En cours / Passées (connecté) */}
-      {user && commandes !== null && (
+      {/* Onglets En cours / Passées */}
+      {commandes !== null && (
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => setOnglet('en_cours')}

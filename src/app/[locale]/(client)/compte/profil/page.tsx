@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { useAuth } from '@/components/client/AuthProvider'
-import AdresseAutocomplete from '@/components/client/AdresseAutocomplete'
+import AdresseCep from '@/components/client/AdresseCep'
 
 const PAYS = [
   { code: '+55', flag: '🇧🇷', label: 'BR' },
@@ -19,7 +19,7 @@ export default function PageProfil() {
   const locale = (params?.locale as string) ?? 'fr'
   const pt = locale === 'pt-BR'
   const router = useRouter()
-  const { user, profile } = useAuth()
+  const { user, profile, loading: authLoading } = useAuth()
 
   const [form, setForm] = useState({ prenom: '', nom: '', adresse: '' })
   const [pays, setPays] = useState<Pays>(PAYS[0])
@@ -59,8 +59,8 @@ export default function PageProfil() {
   }, [profile])
 
   useEffect(() => {
-    if (!user && !loading) router.push(`/${locale}/compte/connexion`)
-  }, [user, loading, locale, router])
+    if (!authLoading && !user) router.push(`/${locale}/compte/connexion`)
+  }, [authLoading, user, locale, router])
 
   async function sauvegarder(e: React.FormEvent) {
     e.preventDefault()
@@ -183,7 +183,7 @@ export default function PageProfil() {
             </div>
           </div>
 
-          <AdresseAutocomplete
+          <AdresseCep
             value={form.adresse}
             label={pt ? 'Endereço de entrega' : 'Adresse de livraison'}
             locale={locale}

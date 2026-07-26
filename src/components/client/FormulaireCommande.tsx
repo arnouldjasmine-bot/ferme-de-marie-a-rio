@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { usePanier } from '@/lib/panier-context'
 import { useAuth } from './AuthProvider'
-import AdresseAutocomplete from './AdresseAutocomplete'
+import AdresseCep from './AdresseCep'
 
 type Etape = 'formulaire' | 'confirmation'
 type Mode  = 'retrait' | 'livraison'
@@ -414,7 +414,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
         </div>
 
         {mode === 'livraison' && (
-          <AdresseAutocomplete
+          <AdresseCep
             value={form.adresse}
             label={t('adresse')}
             locale={locale}

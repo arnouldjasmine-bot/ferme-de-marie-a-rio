@@ -13,16 +13,35 @@ type Commande = {
   created_at: string
 }
 
-async function geocoder(adresse: string, apiKey: string): Promise<{ lat: number; lng: number } | null> {
+function attendre(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+// Nominatim (OpenStreetMap) : gratuit, sans clé, mais limité à ~1 requête/seconde
+// et exige un User-Agent identifiant l'application.
+async function geocoder(adresse: string): Promise<{ lat: number; lng: number } | null> {
   try {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(adresse + ', Rio de Janeiro, Brasil')}&key=${apiKey}`
-    const res = await fetch(url, { next: { revalidate: 3600 } })
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(adresse + ', Rio de Janeiro, Brasil')}`
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'LaFermeDeMarie-Admin/1.0' },
+      next: { revalidate: 3600 },
+    })
     const data = await res.json()
-    if (data.status === 'OK' && data.results[0]) {
-      return data.results[0].geometry.location
+    if (Array.isArray(data) && data[0]) {
+      return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }
     }
   } catch { /* silencieux */ }
   return null
+}
+
+async function geocoderAdresses(adresses: string[]): Promise<Map<string, { lat: number; lng: number }>> {
+  const resultats = new Map<string, { lat: number; lng: number }>()
+  for (const adresse of adresses) {
+    const coords = await geocoder(adresse)
+    if (coords) resultats.set(adresse, coords)
+    await attendre(1100) // respecte la politique d'usage Nominatim (1 requête/s max)
+  }
+  return resultats
 }
 
 async function getCommandesSemaine(): Promise<Commande[]> {
@@ -37,18 +56,17 @@ async function getCommandesSemaine(): Promise<Commande[]> {
 }
 
 export default async function PageAdminCarte() {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? ''
   const commandes = await getCommandesSemaine()
 
-  // Géocodage server-side (uniquement si clé API dispo)
-  const livraisons = apiKey
-    ? await Promise.all(
-        commandes.map(async c => {
-          const coords = await geocoder(c.adresse, apiKey)
-          return coords ? { ...c, ...coords } : null
-        })
-      ).then(r => r.filter(Boolean) as (Commande & { lat: number; lng: number })[])
-    : []
+  // Géocodage server-side : une requête par adresse unique (Nominatim limite à 1 req/s)
+  const adressesUniques = Array.from(new Set(commandes.map(c => c.adresse)))
+  const coordsParAdresse = await geocoderAdresses(adressesUniques)
+  const livraisons = commandes
+    .map(c => {
+      const coords = coordsParAdresse.get(c.adresse)
+      return coords ? { ...c, ...coords } : null
+    })
+    .filter(Boolean) as (Commande & { lat: number; lng: number })[]
 
   return (
     <div className="flex flex-col gap-5 h-full">
@@ -72,39 +90,9 @@ export default async function PageAdminCarte() {
         </div>
       </div>
 
-      {!apiKey ? (
-        /* Placeholder quand pas de clé API */
-        <div className="rounded-2xl flex flex-col items-center justify-center gap-4 p-12 text-center"
-          style={{ height: '560px', backgroundColor: 'var(--couleur-fond-carte)', boxShadow: 'var(--ombre-carte)', border: '2px dashed var(--couleur-bordure)' }}>
-          <div className="text-5xl">🗺️</div>
-          <div>
-            <p className="font-bold text-lg mb-1" style={{ color: 'var(--vert-sauge-fonce)', fontFamily: 'var(--font-playfair, Georgia)' }}>
-              Carte des livraisons — Rio de Janeiro Sud
-            </p>
-            <p className="text-sm mb-4" style={{ color: 'var(--couleur-texte-doux)' }}>
-              Barra da Tijuca · Recreio · Zona Sul
-            </p>
-            <div className="inline-block rounded-xl px-5 py-3 text-sm text-left" style={{ backgroundColor: '#f4f7f4', color: 'var(--couleur-texte)' }}>
-              <p className="font-semibold mb-1" style={{ color: 'var(--vert-sauge-fonce)' }}>Pour activer la carte :</p>
-              <p>1. Créez une clé sur <strong>Google Cloud Console</strong></p>
-              <p>2. Activez <strong>Maps JavaScript API</strong> + <strong>Geocoding API</strong></p>
-              <p>3. Ajoutez dans <code className="bg-white px-1 rounded">.env.local</code> :</p>
-              <code className="block mt-1 text-xs bg-white px-2 py-1 rounded" style={{ color: 'var(--terracotta)' }}>
-                NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=votre_clé
-              </code>
-            </div>
-          </div>
-          {commandes.length > 0 && (
-            <p className="text-sm" style={{ color: 'var(--vert-olive)' }}>
-              ✓ {commandes.length} commande{commandes.length > 1 ? 's' : ''} prête{commandes.length > 1 ? 's' : ''} à afficher sur la carte
-            </p>
-          )}
-        </div>
-      ) : (
-        <div style={{ height: '560px' }}>
-          <CarteLivraisons livraisons={livraisons} apiKey={apiKey} />
-        </div>
-      )}
+      <div style={{ height: '560px' }}>
+        <CarteLivraisons livraisons={livraisons} />
+      </div>
 
       {/* Liste des adresses */}
       {commandes.length > 0 && (
