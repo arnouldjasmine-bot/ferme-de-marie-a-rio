@@ -19,9 +19,15 @@ function attendre(ms: number) {
 
 // Nominatim (OpenStreetMap) : gratuit, sans clé, mais limité à ~1 requête/seconde
 // et exige un User-Agent identifiant l'application.
+// La recherche en texte libre échoue souvent sur nos adresses composées
+// (le suffixe "CEP 00000-000" et le complément la font échouer) : on préfère
+// une requête structurée sur le code postal quand on peut l'extraire.
 async function geocoder(adresse: string): Promise<{ lat: number; lng: number } | null> {
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(adresse + ', Rio de Janeiro, Brasil')}`
+    const cepTrouve = adresse.match(/CEP\s*(\d{5}-?\d{3})/i)
+    const url = cepTrouve
+      ? `https://nominatim.openstreetmap.org/search?format=json&limit=1&postalcode=${encodeURIComponent(cepTrouve[1])}&country=Brazil`
+      : `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(adresse + ', Rio de Janeiro, Brasil')}`
     const res = await fetch(url, {
       headers: { 'User-Agent': 'LaFermeDeMarie-Admin/1.0' },
       next: { revalidate: 3600 },

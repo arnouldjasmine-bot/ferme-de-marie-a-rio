@@ -27,6 +27,10 @@ const champStyle = { borderColor: 'var(--couleur-bordure)' }
 
 export default function AdresseCep({ value, onChange, label, locale }: Props) {
   const pt = locale === 'pt-BR'
+  // affichage = adresse déjà enregistrée, utilisable telle quelle ; edition = formulaire CEP
+  const [mode, setMode] = useState<'affichage' | 'edition'>(value ? 'affichage' : 'edition')
+  const initialiseRef = useRef(false)
+
   const [cep, setCep] = useState('')
   const [logradouro, setLogradouro] = useState('')
   const [bairro, setBairro] = useState('')
@@ -37,6 +41,22 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
   const [recherche, setRecherche] = useState(false)
   const [erreurCep, setErreurCep] = useState('')
   const dernierCepRechercheRef = useRef('')
+
+  // Une adresse déjà enregistrée (profil, ou chargée après coup) est valide telle quelle :
+  // pas besoin de la retaper à chaque commande.
+  useEffect(() => {
+    if (initialiseRef.current || !value) return
+    initialiseRef.current = true
+    setMode('affichage')
+    onChange(value, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+
+  function modifier() {
+    initialiseRef.current = true // ne plus laisser l'effet ci-dessus reprendre la main
+    setMode('edition')
+    onChange('', false)
+  }
 
   // Recherche ViaCEP dès que 8 chiffres sont saisis
   useEffect(() => {
@@ -66,7 +86,7 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
       .catch(() => {
         if (!annule) setErreurCep(pt
           ? 'Erro ao buscar o CEP. Preencha o endereço manualmente.'
-          : 'Erreur lors de la recherche du code postal. Renseignez l\'adresse manuellement.')
+          : 'Erreur lors de la recherche do CEP. Renseignez l\'adresse manuellement.')
       })
       .finally(() => { if (!annule) setRecherche(false) })
 
@@ -75,6 +95,7 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
 
   // Recompose et remonte l'adresse complète au formulaire parent
   useEffect(() => {
+    if (mode !== 'edition') return
     if (!cep && !logradouro && !numero) return // rien saisi : ne pas écraser la valeur d'origine
     const cepOk = cep.replace(/\D/g, '').length === 8
     const valide = cepOk && logradouro.trim().length > 0 && numero.trim().length > 0
@@ -82,7 +103,31 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
     const adresse = `${logradouro}, ${numero}${complementPart}, ${bairro} - ${cidade}/${uf}, CEP ${cep}`
     onChange(adresse, valide)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cep, logradouro, bairro, cidade, uf, numero, complemento])
+  }, [mode, cep, logradouro, bairro, cidade, uf, numero, complemento])
+
+  if (mode === 'affichage') {
+    return (
+      <div>
+        <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>
+          {label}
+        </label>
+        <div
+          className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5"
+          style={{ border: '1px solid var(--couleur-bordure)' }}
+        >
+          <p className="text-sm" style={{ color: 'var(--couleur-texte)' }}>{value}</p>
+          <button
+            type="button"
+            onClick={modifier}
+            className="text-xs font-semibold shrink-0"
+            style={{ color: 'var(--vert-sauge-fonce)' }}
+          >
+            {pt ? 'Alterar' : 'Modifier'}
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const afficherDetails = logradouro || erreurCep
 
@@ -92,11 +137,6 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
         <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>
           {label}
         </label>
-        {value && !cep && (
-          <p className="text-xs mb-2" style={{ color: 'var(--couleur-texte-doux)' }}>
-            {pt ? 'Endereço atual: ' : 'Adresse actuelle : '}{value}
-          </p>
-        )}
         <input
           type="text"
           inputMode="numeric"
