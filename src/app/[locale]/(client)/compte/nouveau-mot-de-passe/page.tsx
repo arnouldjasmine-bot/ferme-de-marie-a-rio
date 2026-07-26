@@ -36,7 +36,8 @@ export default function PageNouveauMotDePasse() {
     setLoading(true)
     const { error } = await supabase.auth.updateUser({ password })
     if (error) {
-      setErreur(pt ? 'Erro ao atualizar a senha.' : 'Erreur lors de la mise à jour.')
+      const detail = error.message ? ` (${error.message})` : ''
+      setErreur((pt ? 'Erro ao atualizar a senha.' : 'Erreur lors de la mise à jour.') + detail)
     } else {
       setSucces(true)
       setTimeout(() => router.push(`/${locale}/mes-commandes`), 2000)
