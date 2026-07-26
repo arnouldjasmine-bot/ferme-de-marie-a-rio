@@ -110,9 +110,9 @@ export default function PageFavoris() {
                   </button>
                 </div>
                 <div className="p-4">
-                  <p className="font-semibold text-sm" style={{ color: 'var(--couleur-texte)' }}>{p.nom}</p>
+                  <p className="font-semibold text-sm" style={{ color: 'var(--couleur-texte)' }}>{pt && p.nom_pt ? p.nom_pt : p.nom}</p>
                   <p className="text-sm font-bold mt-1" style={{ color: 'var(--vert-sauge-fonce)' }}>
-                    R$ {p.prix.toFixed(2)} <span className="text-xs font-normal" style={{ color: 'var(--couleur-texte-doux)' }}>/ {p.unite}</span>
+                    R$ {p.prix.toFixed(2)} <span className="text-xs font-normal" style={{ color: 'var(--couleur-texte-doux)' }}>/ {pt && p.unite_pt ? p.unite_pt : p.unite}</span>
                   </p>
                   {p.stock > 0 && p.actif ? (
                     <button

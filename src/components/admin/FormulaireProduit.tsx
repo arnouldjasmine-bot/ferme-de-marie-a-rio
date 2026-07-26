@@ -18,6 +18,7 @@ export default function FormulaireProduit({ produit }: Props) {
   const [descriptionPt, setDescriptionPt] = useState(produit?.description_pt ?? '')
   const [prix, setPrix] = useState(produit?.prix?.toString() ?? '')
   const [unite, setUnite] = useState(produit?.unite ?? '')
+  const [unitePt, setUnitePt] = useState(produit?.unite_pt ?? '')
   const [stock, setStock] = useState(produit?.stock?.toString() ?? '')
   const [categorie, setCategorie] = useState<string>(produit?.categorie ?? '')
   const [categories, setCategories] = useState<CategorieDB[]>([])
@@ -79,6 +80,7 @@ export default function FormulaireProduit({ produit }: Props) {
         description_pt: descriptionPt.trim() || null,
         prix: parseFloat(prix),
         unite: unite.trim(),
+        unite_pt: unitePt.trim() || null,
         stock: parseInt(stock),
         categorie: categorie || null,
         image_url: imageUrl,
@@ -205,6 +207,12 @@ export default function FormulaireProduit({ produit }: Props) {
             <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>Unité <span style={{ color: 'var(--couleur-erreur)' }}>*</span></label>
             <input type="text" value={unite} onChange={e => setUnite(e.target.value)} className="w-full border rounded-xl px-3 py-2.5 text-sm outline-none" style={{ borderColor: 'var(--couleur-bordure)' }} placeholder="kg, pot 300g…" />
           </div>
+        </div>
+
+        {/* Unité en portugais */}
+        <div>
+          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--couleur-texte)' }}>Unité (PT)</label>
+          <input type="text" value={unitePt} onChange={e => setUnitePt(e.target.value)} className="w-full border rounded-xl px-3 py-2.5 text-sm outline-none" style={{ borderColor: 'var(--couleur-bordure)' }} placeholder="kg, pote 300g…" />
         </div>
 
         {/* Stock */}

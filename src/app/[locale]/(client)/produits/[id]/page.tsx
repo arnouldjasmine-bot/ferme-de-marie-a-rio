@@ -9,13 +9,6 @@ export const dynamic = 'force-dynamic'
 
 type Props = { params: Promise<{ locale: string; id: string }> }
 
-const UNITES_PT: Record<string, string> = {
-  'pièce': 'unidade', 'unité': 'unidade',
-  'pot 300g': 'pote 300g', 'pot 200ml': 'pote 200ml',
-  'pot 250g': 'pote 250g', 'pot 500g': 'pote 500g',
-  'kg': 'kg', '500g': '500g', '250g': '250g', '1kg': '1kg',
-}
-
 export default async function PageProduit({ params }: Props) {
   const { locale, id } = await params
   const supabase = createServiceClient()
@@ -23,7 +16,7 @@ export default async function PageProduit({ params }: Props) {
   if (!data) notFound()
 
   const produit = data as Produit
-  const unite = locale === 'pt-BR' ? (UNITES_PT[produit.unite] ?? produit.unite) : produit.unite
+  const unite = locale === 'pt-BR' && produit.unite_pt ? produit.unite_pt : produit.unite
   const categorie = locale === 'pt-BR'
     ? CATEGORIES.find(c => c.value === produit.categorie)?.labelPt
     : CATEGORIES.find(c => c.value === produit.categorie)?.labelFr

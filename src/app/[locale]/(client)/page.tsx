@@ -26,7 +26,7 @@ export default async function PageAccueil({ params }: Props) {
   const [{ data: produitsData }, { data: pageData }, { data: avisRaw }] = await Promise.all([
     supabase
       .from('products')
-      .select('id, nom, prix, unite, stock, image_url, categorie, actif')
+      .select('id, nom, nom_pt, prix, unite, unite_pt, stock, image_url, categorie, actif')
       .eq('actif', true)
       .gt('stock', 0)
       .order('created_at', { ascending: false })
@@ -237,10 +237,10 @@ export default async function PageAccueil({ params }: Props) {
                   }
                 </div>
                 <div className="p-2.5">
-                  <p className="font-semibold text-xs leading-tight mb-1" style={{ color: 'var(--couleur-texte)' }}>{p.nom}</p>
+                  <p className="font-semibold text-xs leading-tight mb-1" style={{ color: 'var(--couleur-texte)' }}>{pt && p.nom_pt ? p.nom_pt : p.nom}</p>
                   <p className="text-xs font-bold" style={{ color: 'var(--couleur-primaire-fonce)' }}>
                     R$ {p.prix.toFixed(2)}
-                    <span className="font-normal ml-0.5" style={{ color: 'var(--couleur-texte-doux)', fontSize: 10 }}>/ {p.unite}</span>
+                    <span className="font-normal ml-0.5" style={{ color: 'var(--couleur-texte-doux)', fontSize: 10 }}>/ {pt && p.unite_pt ? p.unite_pt : p.unite}</span>
                   </p>
                 </div>
               </Link>

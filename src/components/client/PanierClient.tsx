@@ -6,6 +6,7 @@ import { usePanier } from '@/lib/panier-context'
 
 export default function PanierClient({ locale }: { locale: string }) {
   const t = useTranslations('panier')
+  const pt = locale === 'pt-BR'
   const { articles, totalPrix, retirerDuPanier, modifierQuantite } = usePanier()
 
   if (articles.length === 0) {
@@ -44,8 +45,8 @@ export default function PanierClient({ locale }: { locale: string }) {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className="font-semibold truncate" style={{ color: 'var(--couleur-texte)' }}>{article.produit.nom}</p>
-              <p className="text-sm" style={{ color: 'var(--couleur-texte-doux)' }}>R$ {article.produit.prix.toFixed(2)} / {article.produit.unite}</p>
+              <p className="font-semibold truncate" style={{ color: 'var(--couleur-texte)' }}>{pt && article.produit.nom_pt ? article.produit.nom_pt : article.produit.nom}</p>
+              <p className="text-sm" style={{ color: 'var(--couleur-texte-doux)' }}>R$ {article.produit.prix.toFixed(2)} / {pt && article.produit.unite_pt ? article.produit.unite_pt : article.produit.unite}</p>
             </div>
 
             {/* Quantité */}

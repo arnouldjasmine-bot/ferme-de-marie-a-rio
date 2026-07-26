@@ -11,24 +11,8 @@ import { createBrowserClient } from '@supabase/ssr'
 
 type CategorieItem = { id: string; value: string; label_fr: string; label_pt: string; emoji: string }
 
-const UNITES_PT: Record<string, string> = {
-  'pièce': 'unidade',
-  'unité': 'unidade',
-  'unidade': 'unidade',
-  'pot 300g': 'pote 300g',
-  'pot 200ml': 'pote 200ml',
-  'pot 250g': 'pote 250g',
-  'pot 500g': 'pote 500g',
-  'kg': 'kg',
-  'g': 'g',
-  '500g': '500g',
-  '250g': '250g',
-  '1kg': '1kg',
-}
-
-function tradUnit(unite: string, locale: string): string {
-  if (locale !== 'pt-BR') return unite
-  return UNITES_PT[unite] ?? unite
+function tradUnit(produit: Produit, locale: string): string {
+  return locale === 'pt-BR' && produit.unite_pt ? produit.unite_pt : produit.unite
 }
 
 type Props = { produits: Produit[]; locale: string; categories: CategorieItem[] }
@@ -184,7 +168,7 @@ export default function CatalogueProduits({ produits, locale, categories }: Prop
                     R$ {produit.prix.toFixed(2)}
                   </span>
                   <span className="text-xs" style={{ color: 'var(--couleur-texte-doux)', fontSize: 10 }}>
-                    / {tradUnit(produit.unite, locale)}
+                    / {tradUnit(produit, locale)}
                   </span>
                 </div>
 

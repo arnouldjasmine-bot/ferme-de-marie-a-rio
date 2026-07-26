@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const supabase = createServiceClient()
   const { data, error } = await supabase
     .from('favoris')
-    .select('id, product_id, products(id, nom, prix, unite, stock, image_url, actif)')
+    .select('id, product_id, products(id, nom, nom_pt, prix, unite, unite_pt, stock, image_url, actif)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 

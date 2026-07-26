@@ -19,6 +19,7 @@ export interface Produit {
   description_pt: string | null
   prix: number
   unite: string
+  unite_pt: string | null
   stock: number
   categorie: Categorie | null
   image_url: string | null
