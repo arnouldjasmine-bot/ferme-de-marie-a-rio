@@ -12,6 +12,7 @@ type Mode  = 'retrait' | 'livraison'
 
 const FRAIS_LIVRAISON = 20
 const MONTANT_MINIMUM = 30   // s'applique uniquement en mode livraison
+const CLE_DERNIERE_ADRESSE = 'ferme_derniere_adresse'
 
 const PAYS = [
   { code: '+55', flag: '🇧🇷', label: 'BR', locale: 'pt-BR' },
@@ -45,6 +46,15 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
     telephone: '',
     adresse: '',
   })
+
+  // Préremplir avec la dernière adresse utilisée (client invité, sans compte).
+  // Le profil (ci-dessous), plus autoritaire, prendra le dessus s'il en a une.
+  useEffect(() => {
+    const derniereAdresse = localStorage.getItem(CLE_DERNIERE_ADRESSE)
+    if (derniereAdresse) {
+      setForm(prev => prev.adresse ? prev : { ...prev, adresse: derniereAdresse })
+    }
+  }, [])
 
   // Préremplir avec le profil utilisateur
   useEffect(() => {
@@ -167,6 +177,9 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
     }
 
     setChargement(true)
+    if (mode === 'livraison' && adresse) {
+      localStorage.setItem(CLE_DERNIERE_ADRESSE, adresse)
+    }
     try {
       // Construire le numéro complet avec indicatif pays
       // Retirer le 0 initial si présent (format local → format international)

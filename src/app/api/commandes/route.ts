@@ -120,6 +120,16 @@ export async function POST(request: NextRequest) {
 
     if (orderError) throw new Error(orderError.message)
 
+    // Sauvegarder l'adresse de livraison sur le profil du client connecté,
+    // pour qu'il n'ait pas à la retaper à la prochaine commande.
+    if (user_id && mode_livraison === 'livraison' && adresse) {
+      try {
+        await supabase.from('profiles').update({ adresse }).eq('id', user_id)
+      } catch (profileErr) {
+        console.error('Erreur sauvegarde adresse profil:', profileErr)
+      }
+    }
+
     // Décrémenter le stock de chaque produit
     await Promise.all(
       articles

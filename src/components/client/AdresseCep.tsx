@@ -30,6 +30,16 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
   // affichage = adresse déjà enregistrée, utilisable telle quelle ; edition = formulaire CEP
   const [mode, setMode] = useState<'affichage' | 'edition'>(value ? 'affichage' : 'edition')
   const initialiseRef = useRef(false)
+  // Valeur du dernier onChange émis par ce composant : permet de distinguer un
+  // changement de `value` venant de l'extérieur (profil chargé) d'un changement
+  // qui vient de notre propre recomposition (sinon la moindre frappe dans le CEP
+  // repasserait aussitôt en mode "affichage" avec une adresse encore incomplète).
+  const derniereValeurEmiseRef = useRef<string | null>(null)
+
+  function emettre(adresse: string, valide: boolean) {
+    derniereValeurEmiseRef.current = adresse
+    onChange(adresse, valide)
+  }
 
   const [cep, setCep] = useState('')
   const [logradouro, setLogradouro] = useState('')
@@ -46,16 +56,17 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
   // pas besoin de la retaper à chaque commande.
   useEffect(() => {
     if (initialiseRef.current || !value) return
+    if (value === derniereValeurEmiseRef.current) return // vient de nous, pas du profil
     initialiseRef.current = true
     setMode('affichage')
-    onChange(value, true)
+    emettre(value, true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
   function modifier() {
     initialiseRef.current = true // ne plus laisser l'effet ci-dessus reprendre la main
     setMode('edition')
-    onChange('', false)
+    emettre('', false)
   }
 
   // Recherche ViaCEP dès que 8 chiffres sont saisis
@@ -101,7 +112,7 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
     const valide = cepOk && logradouro.trim().length > 0 && numero.trim().length > 0
     const complementPart = complemento.trim() ? ` - ${complemento.trim()}` : ''
     const adresse = `${logradouro}, ${numero}${complementPart}, ${bairro} - ${cidade}/${uf}, CEP ${cep}`
-    onChange(adresse, valide)
+    emettre(adresse, valide)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, cep, logradouro, bairro, cidade, uf, numero, complemento])
 
