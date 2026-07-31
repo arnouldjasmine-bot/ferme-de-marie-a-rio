@@ -20,6 +20,7 @@ const ADMIN_ROUTES = [
   '/categories',
   '/avis',
   '/page-accueil',
+  '/parametres',
 ]
 
 function isAdminPath(pathname: string): boolean {

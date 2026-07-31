@@ -14,6 +14,7 @@ const liens = [
   { href: '/clients',            label: 'Clients fidèles',  icone: '👥' },
   { href: '/avis',               label: 'Avis',             icone: '⭐' },
   { href: '/page-accueil',       label: "Page d'accueil",   icone: '🏠' },
+  { href: '/parametres',         label: 'Réglages',         icone: '⚙️' },
   { href: '/medrio',             label: 'MedRio',           icone: '🏥' },
   { href: '/carte',              label: 'Carte livraisons', icone: '🗺️' },
   { href: '/statistiques',       label: 'Statistiques',     icone: '📈' },

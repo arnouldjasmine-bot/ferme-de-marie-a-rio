@@ -10,7 +10,7 @@ import AdresseCep from './AdresseCep'
 type Etape = 'formulaire' | 'confirmation'
 type Mode  = 'retrait' | 'livraison'
 
-const FRAIS_LIVRAISON = 20
+const FRAIS_LIVRAISON_DEFAUT = 20 // repli si le réglage admin n'a pas encore chargé
 const MONTANT_MINIMUM = 30   // s'applique uniquement en mode livraison
 const CLE_DERNIERE_ADRESSE = 'ferme_derniere_adresse'
 
@@ -39,6 +39,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
   const [chargement, setChargement] = useState(false)
   const [erreur, setErreur]         = useState('')
   const [adresseValide, setAdresseValide] = useState(false)
+  const [fraisLivraison, setFraisLivraison] = useState(FRAIS_LIVRAISON_DEFAUT)
   const [form, setForm] = useState({
     prenom: '',
     nom: '',
@@ -54,6 +55,17 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
     if (derniereAdresse) {
       setForm(prev => prev.adresse ? prev : { ...prev, adresse: derniereAdresse })
     }
+  }, [])
+
+  // Frais de livraison configurable depuis l'admin (réglages)
+  useEffect(() => {
+    fetch('/api/page-content')
+      .then(r => r.json())
+      .then((data: Record<string, { fr: string; pt: string }>) => {
+        const valeur = parseFloat(data.frais_livraison?.fr ?? '')
+        if (!isNaN(valeur)) setFraisLivraison(valeur)
+      })
+      .catch(() => {})
   }, [])
 
   // Préremplir avec le profil utilisateur
@@ -85,7 +97,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
     }
   }, [profile, user])
 
-  const totalFinal = totalPrix + (mode === 'livraison' ? FRAIS_LIVRAISON : 0)
+  const totalFinal = totalPrix + (mode === 'livraison' ? fraisLivraison : 0)
 
   function set(champ: keyof typeof form) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -194,7 +206,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
       data.append('adresse', adresse)
       data.append('total', totalFinal.toString())
       data.append('mode_livraison', mode)
-      data.append('frais_livraison', mode === 'livraison' ? FRAIS_LIVRAISON.toString() : '0')
+      data.append('frais_livraison', mode === 'livraison' ? fraisLivraison.toString() : '0')
       data.append('articles', JSON.stringify(articles.map(a => ({
         id: a.produit.id,
         nom: a.produit.nom,
@@ -286,7 +298,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
               : (pt ? 'Entrega' : 'Livraison')
             const sous = m === 'retrait'
               ? (pt ? 'Você vem buscar' : 'Vous venez chercher')
-              : (pt ? '+R$ 20 · Entrega na segunda' : '+R$ 20 · Livraison lundi')
+              : (pt ? `+R$ ${fraisLivraison.toFixed(0)} · Entrega na segunda` : `+R$ ${fraisLivraison.toFixed(0)} · Livraison lundi`)
             return (
               <button
                 key={m}
@@ -337,7 +349,7 @@ export default function FormulaireCommande({ locale }: { locale: string }) {
             <span style={{ color: 'var(--couleur-texte-doux)' }}>
               {pt ? 'Taxa de entrega' : 'Frais de livraison'}
             </span>
-            <span style={{ color: 'var(--couleur-texte-doux)' }}>R$ {FRAIS_LIVRAISON.toFixed(2)}</span>
+            <span style={{ color: 'var(--couleur-texte-doux)' }}>R$ {fraisLivraison.toFixed(2)}</span>
           </div>
         )}
         <div className="flex justify-between font-bold mt-3 pt-3" style={{ borderTop: '1px solid var(--couleur-bordure)' }}>
