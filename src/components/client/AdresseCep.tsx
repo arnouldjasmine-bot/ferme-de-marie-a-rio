@@ -27,13 +27,13 @@ const champStyle = { borderColor: 'var(--couleur-bordure)' }
 
 export default function AdresseCep({ value, onChange, label, locale }: Props) {
   const pt = locale === 'pt-BR'
-  // affichage = adresse d√©j√† enregistr√©e, utilisable telle quelle ; edition = formulaire CEP
+  // affichage = adresse déjà enregistrée, utilisable telle quelle ; edition = formulaire CEP
   const [mode, setMode] = useState<'affichage' | 'edition'>(value ? 'affichage' : 'edition')
   const initialiseRef = useRef(false)
-  // Valeur du dernier onChange √©mis par ce composant : permet de distinguer un
-  // changement de `value` venant de l'ext√©rieur (profil charg√©) d'un changement
+  // Valeur du dernier onChange émis par ce composant : permet de distinguer un
+  // changement de `value` venant de l'extérieur (profil chargé) d'un changement
   // qui vient de notre propre recomposition (sinon la moindre frappe dans le CEP
-  // repasserait aussit√¥t en mode "affichage" avec une adresse encore incompl√®te).
+  // repasserait aussitôt en mode "affichage" avec une adresse encore incomplète).
   const derniereValeurEmiseRef = useRef<string | null>(null)
 
   function emettre(adresse: string, valide: boolean) {
@@ -52,8 +52,8 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
   const [erreurCep, setErreurCep] = useState('')
   const dernierCepRechercheRef = useRef('')
 
-  // Une adresse d√©j√† enregistr√©e (profil, ou charg√©e apr√®s coup) est valide telle quelle :
-  // pas besoin de la retaper √† chaque commande.
+  // Une adresse déjà enregistrée (profil, ou chargée après coup) est valide telle quelle :
+  // pas besoin de la retaper à chaque commande.
   useEffect(() => {
     if (initialiseRef.current || !value) return
     if (value === derniereValeurEmiseRef.current) return // vient de nous, pas du profil
@@ -69,7 +69,7 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
     emettre('', false)
   }
 
-  // Recherche ViaCEP d√®s que 8 chiffres sont saisis
+  // Recherche ViaCEP dès que 8 chiffres sont saisis
   useEffect(() => {
     const chiffres = cep.replace(/\D/g, '')
     if (chiffres.length !== 8 || chiffres === dernierCepRechercheRef.current) return
@@ -85,7 +85,7 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
         if (annule) return
         if (data.erro) {
           setErreurCep(pt
-            ? 'CEP n√£o encontrado. Preencha o endere√ßo manualmente.'
+            ? 'CEP não encontrado. Preencha o endereço manualmente.'
             : 'Code postal introuvable. Renseignez l\'adresse manuellement.')
           return
         }
@@ -96,7 +96,7 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
       })
       .catch(() => {
         if (!annule) setErreurCep(pt
-          ? 'Erro ao buscar o CEP. Preencha o endere√ßo manualmente.'
+          ? 'Erro ao buscar o CEP. Preencha o endereço manualmente.'
           : 'Erreur lors de la recherche do CEP. Renseignez l\'adresse manuellement.')
       })
       .finally(() => { if (!annule) setRecherche(false) })
@@ -104,12 +104,12 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
     return () => { annule = true }
   }, [cep, pt])
 
-  // Recompose et remonte l'adresse compl√®te au formulaire parent
+  // Recompose et remonte l'adresse complète au formulaire parent
   useEffect(() => {
     if (mode !== 'edition') return
-    if (!cep && !logradouro && !numero) return // rien saisi : ne pas √©craser la valeur d'origine
-    // Le CEP aide √† pr√©-remplir et √† g√©ocoder, mais n'est pas obligatoire :
-    // un client qui ne le conna√Æt pas doit pouvoir saisir son adresse √† la main.
+    if (!cep && !logradouro && !numero) return // rien saisi : ne pas écraser la valeur d'origine
+    // Le CEP aide à pré-remplir et à géocoder, mais n'est pas obligatoire :
+    // un client qui ne le connaît pas doit pouvoir saisir son adresse à la main.
     const chiffresCep = cep.replace(/\D/g, '').length
     const cepOk = chiffresCep === 0 || chiffresCep === 8
     const valide = cepOk && logradouro.trim().length > 0 && numero.trim().length > 0
@@ -156,8 +156,8 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
         </label>
         <p className="text-xs mb-1" style={{ color: 'var(--couleur-texte-doux)' }}>
           {pt
-            ? 'CEP (opcional ‚Äî preenche o endere√ßo automaticamente)'
-            : 'CEP / code postal (optionnel ‚Äî remplit l\'adresse automatiquement)'}
+            ? 'CEP (opcional — preenche o endereço automaticamente)'
+            : 'CEP / code postal (optionnel — remplit l\'adresse automatiquement)'}
         </p>
         <input
           type="text"
@@ -171,7 +171,7 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
         />
         {recherche && (
           <p className="text-xs mt-1" style={{ color: 'var(--couleur-texte-doux)' }}>
-            {pt ? 'Buscando o endere√ßo‚Ä¶' : 'Recherche de l\'adresse‚Ä¶'}
+            {pt ? 'Buscando o endereço…' : 'Recherche de l\'adresse…'}
           </p>
         )}
         {erreurCep && (
@@ -192,7 +192,7 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
               type="text"
               value={numero}
               onChange={e => setNumero(e.target.value)}
-              placeholder={pt ? 'N√∫mero' : 'Num√©ro'}
+              placeholder={pt ? 'Número' : 'Numéro'}
               className={champClasse}
               style={champStyle}
             />
@@ -200,7 +200,7 @@ export default function AdresseCep({ value, onChange, label, locale }: Props) {
               type="text"
               value={complemento}
               onChange={e => setComplemento(e.target.value)}
-              placeholder={pt ? 'Complemento (opcional)' : 'Compl√©ment (optionnel)'}
+              placeholder={pt ? 'Complemento (opcional)' : 'Complément (optionnel)'}
               className={champClasse}
               style={champStyle}
             />
